@@ -6,6 +6,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, ArrowRight, Heart, Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
 import { brand } from "@/data/brand";
 import { useShop } from "@/lib/store";
+import { useDemoAuth } from "@/lib/demo-auth";
+import { useDemoOrders } from "@/lib/demo-orders";
 import { BagContents } from "./shopping";
 import type { ReactNode } from "react";
 
@@ -18,10 +20,11 @@ export function Wordmark() {
   return <Link className="wordmark" href="/" aria-label="Attraqtive Label home">Attraqtive<span> Label</span></Link>;
 }
 
-export function Overlay({ trigger, title, description, children, drawer = false }: {
+export function Overlay({ trigger, title, description, children, drawer = false, open, onOpenChange }: {
   trigger: ReactNode; title: string; description: string; children: ReactNode; drawer?: boolean;
+  open?: boolean; onOpenChange?: (open: boolean) => void;
 }) {
-  return <Dialog.Root>
+  return <Dialog.Root open={open} onOpenChange={onOpenChange}>
     <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
     <Dialog.Portal>
       <Dialog.Overlay className="scrim" />
@@ -39,7 +42,14 @@ export function Overlay({ trigger, title, description, children, drawer = false 
 
 export function Header() {
   const count = useShop(state => state.lines.reduce((total, line) => total + line.quantity, 0));
-  useEffect(() => { void useShop.persist.rehydrate(); }, []);
+  const role = useDemoAuth(state => state.role);
+  const accountHref = role === "admin" ? "/admin/" : "/account/";
+  const accountLabel = role === "admin" ? "Dashboard" : role === "customer" ? "Account" : "Sign in";
+  useEffect(() => {
+    void Promise.allSettled([
+      useShop.persist.rehydrate(), useDemoOrders.persist.rehydrate(), useDemoAuth.persist.rehydrate(),
+    ]).then(() => useDemoAuth.setState({ ready: true }));
+  }, []);
   return <>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <div className="announcement">{brand.announcement}</div>
@@ -51,15 +61,15 @@ export function Header() {
         <Overlay trigger={<button className="icon-button" aria-label="Open navigation"><Menu size={23} /></button>}
           title="Explore Attraqtive" description="Storefront navigation" drawer>
           <nav aria-label="Mobile navigation" className="menu-links">
-            {[...navigation, ["Lookbook", "/lookbook/"], ["Account", "/account/"], ["Wishlist", "/wishlist/"]].map(([name, href]) =>
+            {[...navigation, ["Lookbook", "/lookbook/"], ["Search", "/search/"], [accountLabel, accountHref], ["Wishlist", "/wishlist/"]].map(([name, href]) =>
               <Dialog.Close asChild key={href}><Link href={href}>{name}<ArrowRight size={18} /></Link></Dialog.Close>)}
           </nav>
         </Overlay>
       </div>
       <Wordmark />
       <nav className="utilities" aria-label="Shop navigation">
-        <Link className="icon-button" href="/search/" aria-label="Search"><Search size={20} /></Link>
-        <Link className="icon-button desktop-utility" href="/account/" aria-label="Account"><UserRound size={19} /></Link>
+        <Link className="icon-button header-search" href="/search/" aria-label="Search"><Search size={20} /></Link>
+        <Link className="account-link" href={accountHref} data-signed={!!role}><UserRound size={19} /><span>{accountLabel}</span></Link>
         <Link className="icon-button desktop-utility" href="/wishlist/" aria-label="Wishlist"><Heart size={20} /></Link>
         <Overlay trigger={<button className="icon-button bag-trigger" aria-label={count ? "Open shopping bag, " + count + (count === 1 ? " item" : " items") : "Open shopping bag"}><ShoppingBag size={20} />{count > 0 && <span>{count}</span>}</button>}
           title="Shopping Bag" description="Review sample items and go to demonstration checkout" drawer>

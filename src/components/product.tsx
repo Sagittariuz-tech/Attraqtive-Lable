@@ -8,9 +8,11 @@ import { ArrowLeft, ArrowRight, Expand, Share2, Sparkles, ZoomIn } from "lucide-
 import type { Media, Product, Variant } from "@/data/catalogue";
 import { money, unitPrice } from "@/lib/commerce";
 import { useShop } from "@/lib/store";
+import { useDemoAuth } from "@/lib/demo-auth";
 import { Overlay } from "./shell";
 import { Photo } from "./media";
 import { SaveButton } from "./catalogue";
+import { DemoSignIn } from "./demo-sign-in";
 
 const perspectives: { role: Media["role"]; label: string }[] = [
   { role: "product", label: "Product View" }, { role: "model", label: "On Model" }, { role: "detail", label: "Details" }, { role: "video", label: "Video" },
@@ -84,21 +86,39 @@ function ImageViewer({ asset }: { asset: Media }) {
 
 function PurchaseButton({ product, variant, onFeedback }: { product: Product; variant?: Variant; onFeedback: (message: string) => void }) {
   const params = useSearchParams();
+  const [signInOpen, setSignInOpen] = useState(false);
+  const { role, ready } = useDemoAuth();
   const saved = useShop(state => state.saved.includes(product.slug));
   const add = useShop(state => state.add);
   const move = useShop(state => state.moveSavedToBag);
   const quantity = useShop(state => state.lines.find(line => line.id === variant?.id)?.quantity ?? 0);
   const fromWishlist = params.get("from") === "wishlist" && saved;
   const atLimit = !!variant && quantity >= variant.stock;
-  return <button className="button button-dark" disabled={atLimit} onClick={() => {
+  function purchase() {
     if (!variant?.stock) { onFeedback("Select an available size to add this style."); return; }
+    const currentQuantity = useShop.getState().lines.find(line => line.id === variant.id)?.quantity ?? 0;
+    if (currentQuantity >= variant.stock) { onFeedback("The sample limit has been reached."); return; }
     if (fromWishlist) {
       onFeedback(move(product.slug, variant.id) ? "Moved from your wishlist to your shopping bag." : "This style could not be moved. Check your bag and try another size.");
       return;
     }
     add(variant.id);
     onFeedback("Added to your shopping bag.");
-  }}>{atLimit ? "Sample limit reached" : fromWishlist ? "Move to bag" : "Add to bag"}</button>;
+  }
+
+  return <Overlay open={signInOpen} onOpenChange={setSignInOpen}
+    trigger={<button className="button button-dark" disabled={atLimit || !ready} onClick={event => {
+      event.preventDefault();
+      if (!variant?.stock || role === "customer") purchase();
+      else setSignInOpen(true);
+    }}>{atLimit ? "Sample limit reached" : fromWishlist ? "Move to bag" : "Add to bag"}</button>}
+    title="Sign in to add to bag" description="Sign in as the demo customer to keep the selected garment, colour and size.">
+    <div className="overlay-body">
+      <p className="pending-item">{product.title} · {variant?.colour} · {variant?.size}</p>
+      <DemoSignIn allowed="customer" onSignedIn={() => { setSignInOpen(false); purchase(); }} />
+      <button className="plain-link" type="button" onClick={() => setSignInOpen(false)}>Keep browsing</button>
+    </div>
+  </Overlay>;
 }
 
 export function ProductPresentation({ product }: { product: Product }) {

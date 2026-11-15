@@ -44,6 +44,12 @@ export default function Home() {
       <div className="section-heading"><div><p className="eyebrow">Illustrative catalogue</p><h2>Selected creations</h2></div><Link className="text-link" href="/lookbook/">Open the lookbook <ArrowRight size={16} /></Link></div>
       <div className="product-grid">{products.filter(product => product.featured).map(product => <ProductCard key={product.slug} product={product} />)}</div>
     </section>
+    <section className="section wrap newly-added" data-reveal>
+      <div className="section-heading"><div><p className="eyebrow">New sample styles</p><h2>New to the edit</h2></div>
+        <Link className="text-link" href="/collections/?sort=new">See new arrivals <ArrowRight size={16} /></Link></div>
+      <div className="product-grid">{products.filter(product => !product.featured).sort((a, b) => b.published.localeCompare(a.published)).slice(0, 3)
+        .map(product => <ProductCard key={product.slug} product={product} />)}</div>
+    </section>
     <section className="consultation-band" data-reveal>
       <p className="eyebrow">{brand.place}</p><h2>Made for your occasion</h2>
       <p>Start with a private styling or bespoke design consultation.</p>

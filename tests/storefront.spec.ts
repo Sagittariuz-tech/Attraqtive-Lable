@@ -1,6 +1,14 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+async function signInFromBag(page: import("@playwright/test").Page) {
+  const dialog = page.getByRole("dialog", { name: "Sign in to add to bag" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Use sample credentials" }).click();
+  await dialog.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(dialog).toBeHidden();
+}
+
 test("shop a sample garment through checkout", async ({ page }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -22,6 +30,12 @@ test("shop a sample garment through checkout", async ({ page }, info) => {
   await page.getByRole("button", { name: "Save Garnet Zardozi Lehenga" }).first().click();
   await page.getByRole("button", { name: "M", exact: true }).click();
   await page.getByRole("button", { name: "Add to bag" }).click();
+  const login = page.getByRole("dialog", { name: "Sign in to add to bag" });
+  await expect(login.getByText("Garnet Zardozi Lehenga · Garnet · M", { exact: true })).toBeVisible();
+  await login.getByRole("button", { name: "Keep browsing" }).click();
+  await expect(page.getByRole("button", { name: "Open shopping bag", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Add to bag" }).click();
+  await signInFromBag(page);
   await page.getByRole("button", { name: "Open shopping bag, 1 item" }).click();
   await page.getByRole("button", { name: /Increase quantity/ }).click();
   await expect(page.getByRole("dialog").getByText("₹57,000").last()).toBeVisible();
@@ -39,8 +53,20 @@ test("shop a sample garment through checkout", async ({ page }, info) => {
   await page.getByLabel("PIN code").fill("530002");
   await page.getByRole("button", { name: "Complete demo order" }).click();
   await expect(page.getByRole("heading", { name: "Demo order complete" })).toBeVisible();
+  await page.getByRole("link", { name: "View demo receipt" }).click();
+  await expect(page.getByRole("heading", { name: "Demo order history" })).toBeVisible();
+  await expect(page.locator("summary").filter({ hasText: /DEMO-.*₹57,000/ })).toBeVisible();
   await page.goto("/wishlist/");
   await expect(page.getByRole("heading", { name: "Garnet Zardozi Lehenga" })).toBeVisible();
+  await page.goto("/account/");
+  await page.getByRole("button", { name: "Sign out of demo" }).click();
+  await page.getByRole("button", { name: "Boutique owner", exact: true }).click();
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/$/);
+  await page.getByRole("combobox", { name: "Order source" }).selectOption("This browser");
+  const register = page.getByRole("region", { name: "Owner order register" });
+  await expect(register.getByText("₹57,000")).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -99,6 +125,7 @@ test("browse and zoom model shots, then move a saved variant into the bag", asyn
   await expect(page.getByRole("status").filter({ hasText: "Select an available size" })).toBeVisible();
   await page.getByRole("button", { name: "L", exact: true }).click();
   await page.getByRole("button", { name: "Move to bag", exact: true }).click();
+  await signInFromBag(page);
   await expect(page.getByRole("status").filter({ hasText: "Moved from your wishlist" })).toBeVisible();
   await page.goto("/wishlist/");
   await expect(page.getByRole("heading", { name: "Nothing saved yet" })).toBeVisible();
@@ -108,6 +135,42 @@ test("browse and zoom model shots, then move a saved variant into the bag", asyn
   await expect(page.getByRole("heading", { name: "Your bag is empty" })).toBeVisible();
   await page.goto("/wishlist/");
   await expect(page.getByRole("link", { name: /Move to bag.*Garnet/ })).toBeVisible();
+});
+
+test("demo roles route to separate account views and owner reports can be filtered and exported", async ({ page }) => {
+  await page.goto("/");
+  const signInLink = page.getByRole("navigation", { name: "Shop navigation" }).getByRole("link", { name: "Sign in" });
+  await expect(signInLink).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await signInLink.click();
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByLabel("Demo access code").fill("incorrect");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Use the sample credentials" })).toBeVisible();
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Demo Customer" })).toBeVisible();
+  await page.goto("/admin/");
+  await expect(page.getByRole("heading", { name: "Sales overview" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Sales overview" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Style demand" })).toBeVisible();
+  await page.getByRole("combobox", { name: "Period" }).selectOption("90");
+  await page.getByRole("combobox", { name: "Collection category" }).selectOption("menswear");
+  const demand = page.getByRole("region", { name: "Style demand report" });
+  await expect(demand.getByRole("link", { name: "Ivory Embroidered Sherwani" })).toBeVisible();
+  await expect(demand.getByRole("link", { name: "Garnet Zardozi Lehenga" })).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Rank by" }).selectOption("views");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  expect((await download).suggestedFilename()).toBe("attraqtive-demo-orders-90d.csv");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const findings = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  expect(findings.violations).toEqual([]);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Sales overview" })).toHaveCount(0);
 });
 
 test("homepage accessibility and responsive boundaries", async ({ page }) => {

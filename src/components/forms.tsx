@@ -12,6 +12,8 @@ import { categories, products } from "@/data/catalogue";
 import { checkoutSchema, consultationSchema } from "@/lib/validation";
 import { money, resolveBag } from "@/lib/commerce";
 import { useShop } from "@/lib/store";
+import { useDemoAuth } from "@/lib/demo-auth";
+import { useDemoOrders } from "@/lib/demo-orders";
 import { EmptyBag } from "./shopping";
 import { Overlay } from "./shell";
 
@@ -25,15 +27,26 @@ export function Checkout() {
   const items = resolveBag(lines);
   const total = items.reduce((sum, item) => sum + item.total, 0);
   const [completed, setCompleted] = useState(false);
+  const [receiptId, setReceiptId] = useState("");
   const { register, handleSubmit, control, formState: { errors } } = useForm<z.input<typeof checkoutSchema>>({
     resolver: zodResolver(checkoutSchema), defaultValues: { delivery: "standard" }, shouldUnregister: true,
   });
   const delivery = useWatch({ control, name: "delivery" });
-  if (completed) return <div className="empty-state" role="status"><Check size={28} /><h2>Demo order complete</h2><p>Your simulated order is complete. No payment was taken and no order was sent.</p><Link className="button button-dark" href="/collections/">Continue exploring <ArrowRight size={16} /></Link></div>;
+  if (completed) return <div className="empty-state" role="status"><Check size={28} /><h2>Demo order complete</h2><p>Your simulated order is complete. {receiptId && <>Receipt {receiptId} is saved in your demo account.</>}</p>
+    <div className="button-row checkout-links">{receiptId && <Link className="button button-outline" href="/account/">View demo receipt</Link>}<Link className="button button-dark" href="/collections/">Continue exploring <ArrowRight size={16} /></Link></div></div>;
   if (!items.length) return <><EmptyBag /><div className="center"><Link className="button button-dark" href="/collections/">Explore collections</Link></div></>;
 
   return <div className="form-layout">
-    <form noValidate onSubmit={handleSubmit(() => { setCompleted(true); clear(); })}>
+    <form noValidate onSubmit={handleSubmit(({ delivery }) => {
+      const currentLines = useShop.getState().lines;
+      if (!currentLines.length) return;
+      if (useDemoAuth.getState().role === "customer") {
+        const receipt = useDemoOrders.getState().record(currentLines, delivery);
+        if (receipt) setReceiptId(receipt.id);
+      }
+      clear();
+      setCompleted(true);
+    })}>
       <h2>Guest details</h2>
       <div className="form-grid">
         <Field title="Full name" error={errors.name?.message}><input {...register("name")} autoComplete="off" aria-invalid={!!errors.name} /></Field>

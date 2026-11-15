@@ -5,7 +5,7 @@ import { Photo } from "@/components/media";
 import { Overlay } from "@/components/shell";
 export const metadata = { title: "Lookbook" };
 export default function Lookbook() {
-  return <section className="wrap inner-page"><div className="page-heading"><p className="eyebrow">Illustrative editorial</p><h1>The lookbook</h1><p>Three studies in colour, texture and the way a garment falls.</p></div>
+  return <section className="wrap inner-page"><div className="page-heading"><p className="eyebrow">Illustrative editorial</p><h1>The lookbook</h1><p>Studies in colour, texture and the way a garment falls.</p></div>
     <div className="lookbook">{products.map(product => {
       const look = product.media.find(media => media.role === "model") ?? product.media[0];
       return <article key={product.slug}>

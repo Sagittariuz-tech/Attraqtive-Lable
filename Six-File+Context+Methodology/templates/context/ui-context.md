@@ -32,6 +32,7 @@ Use native semantic controls or Radix primitives where needed for focus containm
 
 - Announcement, navigation, cinematic hero, collection edits, featured samples, atelier story, bespoke journey, lookbook and private consultation.
 - Desktop gallery and sticky product details. Mobile uses swipe gallery and thumb-friendly controls. In the enlarged garment view, a 2× zoom exposes a scrollable image region. Arrow keys browse the main gallery and Escape closes the enlarged view.
+- Sign in remains a visible header action. The customer prompt opens after a valid bag action, describes the pending variant and offers a return to browsing. The owner dashboard groups sales, garment demand, stock and orders with labeled report controls and horizontally scrollable tables on small screens.
 - On scroll use transform and opacity reveals with GSAP lifecycle cleanup and a reduced-motion guard. CSS owns hover and focus transitions. Reserve media dimensions and lazy-load secondary imagery.
 
 ## Reference review

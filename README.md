@@ -41,12 +41,25 @@ Playwright serves the static build and exercises desktop and mobile paths. To ru
 | Editorial storefront | Scroll through the homepage, open Bridal Couture and follow a selected creation into the lookbook. |
 | Catalogue and product discovery | Filter by size, garment fabric or occasion. Search for “silk” and open a quick view. |
 | Model imagery | Open Garnet Zardozi Lehenga and switch between Product View, On Model and Details. Browse the On Model shots, then enlarge one and use 2× zoom. |
-| Wishlist and bag | Save the garnet sample, open the wishlist and choose Move to bag. Select M and confirm the move, then open the bag and change the quantity. Reload to verify local persistence. |
+| Wishlist and bag | Save the garnet sample, open the wishlist and choose Move to bag. Select M, sign in as the demo customer, and change the bag quantity. Reload to verify local persistence. |
 | Demo checkout | Enter sample guest information and the sample PIN `530002`. Confirm the simulated order. |
 | Bespoke consultation | Preview an appointment request with sample contact data. Open Contact to preview the WhatsApp message. |
 | Future AI concept previews | Choose a preset in Find Your Inspiration or compare prepared illustrations in Virtual Atelier. |
+| Customer account | Use Sign in in the header, or try adding a selected size to the bag as a guest. Complete checkout and open Account to inspect the saved demo receipt. |
+| Owner dashboard | Sign out of any active role, choose Boutique owner, and sign in. Filter sales and style demand by period/category, review stock and follow-ups, then filter and export the order register. Choose the This browser order source to find the order just placed. |
 
-The three catalogue items, prices, inventory quantities and media are illustrative. Orders and consultations stay in the demo. The WhatsApp channel is awaiting confirmation, so the interface previews and copies a sample message. Account management is a production concept. Demo AI screens neither upload photos nor run inference.
+The nine catalogue items, prices, inventory quantities and media are illustrative. Orders and consultations stay in the demo. The WhatsApp channel is awaiting confirmation, so the interface previews and copies a sample message. Demo AI screens use prepared examples.
+
+### Demo credentials and data
+
+| Role | Demo email | Demo access code |
+| --- | --- | --- |
+| Customer | `customer@example.test` | `SHOP2026` |
+| Boutique owner | `owner@example.test` | `OWNER2026` |
+
+Use sample credentials fills both fields. Visitors can browse, search, save styles and open the account entry point without signing in. After a valid size is selected, the bag prompt retains the selected item and continues the action on sign-in. The demo role is stored per tab. The browser retains the bag, wishlist and up to 100 receipt snapshots without submitted contact or address information.
+
+The owner screen is a simulated client-side role gate. Its dataset is public sample material bundled with the app. Real customer or business data requires server authentication and authorization. Report periods are rolling, and category filters apply only the matching order lines. Net sales exclude cancelled and fully refunded orders. The margin and returning customer calculations use seeded records only. Sample product traffic and enquiries are seeded separately, and demo order placement does not change fixture inventory.
 
 ## Owner review before production
 
