@@ -1,0 +1,123 @@
+import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+test("shop a sample garment through checkout", async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto("/");
+  if (info.project.name === "mobile") {
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Collections", exact: true }).click();
+  } else {
+    await page.getByRole("link", { name: "Explore the collection", exact: true }).click();
+  }
+  await page.getByRole("link", { name: "Bridal Couture", exact: true }).click();
+  await page.getByRole("button", { name: "Quick view of Garnet Zardozi Lehenga" }).click();
+  await page.getByRole("link", { name: "View garment" }).click();
+  await page.getByRole("button", { name: "On Model" }).click();
+  await expect(page.getByAltText("A model in an illustrative garnet bridal lehenga")).toBeVisible();
+  await page.getByRole("button", { name: "Enlarge image" }).click();
+  await expect(page.getByRole("dialog", { name: "Garment image" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Save Garnet Zardozi Lehenga" }).first().click();
+  await page.getByRole("button", { name: "M", exact: true }).click();
+  await page.getByRole("button", { name: "Add to bag" }).click();
+  await page.getByRole("button", { name: "Open shopping bag, 1 item" }).click();
+  await page.getByRole("button", { name: /Increase quantity/ }).click();
+  await expect(page.getByRole("dialog").getByText("₹57,000").last()).toBeVisible();
+  await page.getByRole("link", { name: "View shopping bag" }).click();
+  await page.reload();
+  await expect(page.getByText("₹57,000").last()).toBeVisible();
+  await page.getByRole("link", { name: "Demo checkout" }).click();
+  await page.getByRole("button", { name: "Complete demo order" }).click();
+  await expect(page.getByText("Enter a valid six-digit Indian PIN code.")).toBeVisible();
+  await page.getByLabel("Full name").fill("Demo Guest");
+  await page.getByLabel("Email", { exact: true }).fill("guest@example.test");
+  await page.getByLabel("Street address").fill("1 Sample Street");
+  await page.getByLabel("City", { exact: true }).fill("Visakhapatnam");
+  await page.getByLabel("State", { exact: true }).fill("Andhra Pradesh");
+  await page.getByLabel("PIN code").fill("530002");
+  await page.getByRole("button", { name: "Complete demo order" }).click();
+  await expect(page.getByRole("heading", { name: "Demo order complete" })).toBeVisible();
+  await page.goto("/wishlist/");
+  await expect(page.getByRole("heading", { name: "Garnet Zardozi Lehenga" })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("filters, consultation and AI concept journeys", async ({ page }) => {
+  await page.goto("/search/");
+  await page.getByRole("searchbox").fill("silk");
+  await expect(page.getByRole("heading", { name: "Olive Silk Anarkali" })).toBeVisible();
+  await page.getByText("Filters", { exact: true }).click();
+  await page.getByRole("combobox", { name: "Occasion", exact: true }).selectOption("Wedding");
+  await expect(page.getByRole("heading", { name: "No sample styles found" })).toBeVisible();
+  await page.getByRole("link", { name: "Search by image" }).click();
+  await page.getByRole("button", { name: "Custom design sketch" }).click();
+  await page.getByRole("button", { name: "View sample results" }).click();
+  await page.getByRole("link", { name: "Request a custom design" }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Demo Guest");
+  await page.getByLabel("Email or phone").fill("demo@example.test");
+  await page.getByRole("button", { name: "Preview consultation request" }).click();
+  await expect(page.getByRole("heading", { name: "Consultation preview ready" })).toBeVisible();
+  await page.goto("/contact/");
+  await page.getByRole("button", { name: "Preview WhatsApp enquiry" }).click();
+  await expect(page.getByRole("dialog").getByText("The boutique’s WhatsApp number is awaiting confirmation.")).toBeVisible();
+  await page.goto("/virtual-atelier/");
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "View sample comparison" })).toBeDisabled();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "View sample comparison" }).click();
+  await expect(page.getByRole("slider")).toBeVisible();
+  await page.getByRole("button", { name: "Clear comparison" }).click();
+  await expect(page.getByRole("slider")).toHaveCount(0);
+});
+
+test("browse and zoom model shots, then move a saved variant into the bag", async ({ page }) => {
+  await page.goto("/products/garnet-zardozi-lehenga/");
+  await page.getByRole("button", { name: "On Model" }).click();
+  const photographs = page.getByRole("group", { name: /Garment photographs/ });
+  await photographs.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("button", { name: "View image 2" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Enlarge image" }).click();
+  const dialog = page.getByRole("dialog", { name: "Garment image" });
+  await expect(dialog.getByAltText("Alternate illustrative garnet lehenga styling in a sandstone arch")).toBeVisible();
+  const zoom = dialog.getByRole("button", { name: "2× zoom" });
+  await zoom.click();
+  await expect(zoom).toHaveAttribute("aria-pressed", "true");
+  const viewer = dialog.getByRole("region", { name: "Garment photograph" });
+  expect(await viewer.evaluate(frame => frame.scrollWidth / frame.clientWidth)).toBeGreaterThanOrEqual(1.9);
+  await zoom.click();
+  await expect(zoom).toHaveAttribute("aria-pressed", "false");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Enlarge image" })).toBeFocused();
+
+  await page.getByRole("button", { name: "Save Garnet Zardozi Lehenga", exact: true }).click();
+  await page.goto("/wishlist/");
+  await page.getByRole("link", { name: /Move to bag.*Garnet/ }).click();
+  await page.getByRole("button", { name: "Move to bag", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Select an available size" })).toBeVisible();
+  await page.getByRole("button", { name: "L", exact: true }).click();
+  await page.getByRole("button", { name: "Move to bag", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Moved from your wishlist" })).toBeVisible();
+  await page.goto("/wishlist/");
+  await expect(page.getByRole("heading", { name: "Nothing saved yet" })).toBeVisible();
+  await page.goto("/cart/");
+  await expect(page.getByText("Garnet · L · ₹28,500 each")).toBeVisible();
+  await page.getByRole("button", { name: "Save for later" }).click();
+  await expect(page.getByRole("heading", { name: "Your bag is empty" })).toBeVisible();
+  await page.goto("/wishlist/");
+  await expect(page.getByRole("link", { name: /Move to bag.*Garnet/ })).toBeVisible();
+});
+
+test("homepage accessibility and responsive boundaries", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+  const findings = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  expect(findings.violations).toEqual([]);
+});
