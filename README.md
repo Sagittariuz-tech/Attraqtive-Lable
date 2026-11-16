@@ -34,6 +34,8 @@ Playwright serves the static build and exercises desktop and mobile paths. To ru
 4. Enable the host's private, authenticated access control before sharing the demo URL. The app excludes demo pages from search indexing via metadata and robots.txt.
 5. After deployment, verify direct navigation and refresh on a collection and product URL. Complete the bag, mock checkout and consultation journeys on the deployed host.
 
+The build normalizes static navigation segment paths when Next.js emits nested Windows export paths. [Next.js issue 85374](https://github.com/vercel/next.js/issues/85374)
+
 ## Client walkthrough
 
 | Included in demo | What to try |

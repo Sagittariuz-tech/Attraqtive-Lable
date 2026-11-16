@@ -12,6 +12,7 @@ async function signInFromBag(page: import("@playwright/test").Page) {
 test("shop a sample garment through checkout", async ({ page }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
+  expect(await page.request.get("/collections/bridal/__next.collections.$d$slug.__PAGE__.txt")).toBeOK();
   await page.goto("/");
   if (info.project.name === "mobile") {
     await page.getByRole("button", { name: "Open navigation" }).click();

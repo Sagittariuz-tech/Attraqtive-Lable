@@ -58,13 +58,13 @@ const controls: [keyof Filters, string, string[][]][] = [
   ["availability", "Availability", [["retail", "Sample stock available"], ["consultation", "By consultation"]]],
 ];
 
-export function Catalogue({ category = "", search = false }: { category?: string; search?: boolean }) {
+export function SortedCatalogue() {
   const params = useSearchParams();
   const sort = params.get("sort") ?? "";
-  return <CatalogueControls key={sort + category} search={search} category={category} sort={sort} />;
+  return <Catalogue key={sort} sort={sort} />;
 }
 
-function CatalogueControls({ category, search, sort }: { category: string; search: boolean; sort: string }) {
+export function Catalogue({ category = "", search = false, sort = "" }: { category?: string; search?: boolean; sort?: string }) {
   const [filters, setFilters] = useState<Filters>({ ...emptyFilters, category, sort });
   const [visible, setVisible] = useState(6);
   const results = filterProducts(filters);

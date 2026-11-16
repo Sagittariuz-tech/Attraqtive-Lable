@@ -38,7 +38,8 @@ export function seedOwnerReport(now: number): ReportData {
     const status = day < 4 ? (["Processing", "Ready for pickup", "Shipped", "Delivered"] as const)[day] : statuses[(day * 3 + Math.floor(day / 5)) % statuses.length];
     return {
       id: "AL-S" + (4000 - day), at: now - day * dayMs - 60000, source: "Seeded" as const,
-      customer: "Sample client " + ((day * 17) % 41 + 1), city: cities[(day * 3 + Math.floor(day / 6)) % cities.length],
+      customer: "Sample client " + (day % 3 === 0 ? 100 + day : (day * 17) % 41 + 1),
+      city: cities[(day * 3 + Math.floor(day / 6)) % cities.length],
       channel: channels[status === "Ready for pickup" ? 1 : Number(day % 4 === 2)], status,
       items: [{ sku: product.sku, size: variant.size, units: day % 13 === 0 ? 2 : 1, price, cost: Math.round(price * (.38 + (day % 5) * .03)) }],
     };

@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { categories } from "@/data/catalogue";
 import { Catalogue } from "@/components/catalogue";
@@ -18,7 +17,7 @@ export default async function Collection({ params }: Props) {
   return <section className="wrap inner-page">
     <BackLink href="/collections/">All collections</BackLink>
     <div className="page-heading"><p className="eyebrow">Proposed collection</p><h1>{category.name}</h1><p>{category.description}</p></div>
-    <Suspense fallback={<p role="status">Loading styles…</p>}><Catalogue category={slug} /></Suspense>
+    <Catalogue category={slug} />
   </section>;
 }
 

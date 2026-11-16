@@ -52,6 +52,8 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const orders = report.orders.filter(order => (!status || order.status === status) && (!source || order.source === source));
   const maxBar = Math.max(1, ...report.trend.map(point => point.value));
   const stockouts = report.lowStock.filter(item => item.variant.stock === 0);
+  const stockPriority = [...report.demand].filter(item => item.units > 0 && stockouts.some(({ product }) => product.sku === item.product.sku))
+    .sort((a, b) => b.units - a.units)[0];
   const awaiting = report.orders.filter(order => order.status === "Processing" || order.status === "Ready for pickup");
   const browserCount = report.orders.filter(order => order.source === "This browser").length;
 
@@ -129,6 +131,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
     <section id="inventory" className="report-section">
       <div className="report-title"><div><h2>Stock &amp; follow-ups</h2><p className="fine">Current sample variant stock and orders that need attention.</p></div></div>
+      {stockPriority && <p className="notice"><strong>Restock candidate:</strong> {stockPriority.product.title} sold {stockPriority.units} units in this period and has sample sizes out of stock.</p>}
       <div className="report-columns operations-columns">
         <section className="report-panel"><h3>Low or out of stock</h3>
           <p className="fine">{stockouts.length} sizes out of stock · {report.lowStock.length - stockouts.length} sizes with one left</p>
