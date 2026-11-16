@@ -72,3 +72,4 @@ See the project README for commands, presentation notes and deployment instructi
 
 - Restored the original hero copy, warm palette and serif typography using the previous editorial design as the reference. The homepage again uses the single navigation row and places the atelier story before the product edits. Interior page layouts retain their current structure.
 - The production export, lint, homepage accessibility and responsive checks, and all nine product galleries passed on desktop and mobile. The mobile checkout journey timed out at Quick View on the first run and passed on a focused rerun.
+- Anchored the wide homepage hero crop at the top to keep the model's face in frame on laptops. The mobile crop is unchanged. No build or browser preview was run for this adjustment, as requested.

@@ -6,6 +6,8 @@ The storefront uses an ivory canvas, parchment surfaces, ink text and wine accen
 
 The shared palette and fonts are defined in `src/app/design-system.css`. Homepage spacing and the original hero treatment live in `src/app/globals.css`.
 
+The wide hero image is anchored at the top so the model's face stays in frame when the image is cropped on laptops. Phones use a separate image and crop.
+
 ## Reference review for the later design refresh, 16 November 2026
 
 Reviewed the live H&M India, Nykaa Fashion and The Souled Store homepages through web text and browser screenshots. These are qualitative observations, not extracted brand font specifications or exact spacing measurements. Cookie and notification overlays limited some views. The Souled Store was also inspected at a 390px viewport; Nykaa exposed its compact navigation in the available pane. A complete mobile product-page audit of all three was not performed.
