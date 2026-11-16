@@ -13,6 +13,10 @@ npm run dev
 
 Open [the local storefront](http://localhost:3000). The demo uses local WebP assets and fonts, typed sample data and browser storage. It requires no environment variables, credentials, external APIs or database.
 
+## Storefront design
+
+The homepage uses the original editorial arrangement: an ivory and wine palette, Cormorant Garamond headings, Instrument Sans interface text, and campaign, collection, atelier, product edit and consultation sections. Interior catalogue pages retain their responsive category navigation and product discovery layout. The design takes broad fashion-retail usability cues without using reference-site branding or assets.
+
 ## Build and verify
 
 ```sh
@@ -59,7 +63,7 @@ The nine catalogue items, prices, inventory quantities and media are illustrativ
 | Customer | `customer@example.test` | `SHOP2026` |
 | Boutique owner | `owner@example.test` | `OWNER2026` |
 
-Use sample credentials fills both fields. Guests can browse, save styles, add to the bag, and check out. The demo role is stored per tab. The browser retains the bag, wishlist, receipt snapshots and a demo enquiry queue. Enquiry records include the reference, service, garment interest, occasion date, stage and follow-up date. Submitted names, contact details, checkout addresses and free-text notes are excluded from browser records.
+Enter either sample email and its matching access code in both sign-in fields. Guests can browse, save styles, add to the bag, and check out. The demo role is stored per tab. The browser retains the bag, wishlist, receipt snapshots and a demo enquiry queue. Enquiry records include the reference, service, garment interest, occasion date, stage and follow-up date. Submitted names, contact details, checkout addresses and free-text notes are excluded from browser records.
 
 The owner screen uses a simulated client-side role gate and public fixtures. Real customer or business data requires server authentication and authorization. Report periods are rolling, and category filters apply only the matching order lines. Net sales use order dates and reflect current payment state. Refund totals use refund dates. Margin and returning-customer calculations use seeded orders. Current sample stock starts with the catalogue fixtures and is reduced by purchases completed in this browser. Refunding changes the payment record, and the separate restock action releases the units back to stock.
 
