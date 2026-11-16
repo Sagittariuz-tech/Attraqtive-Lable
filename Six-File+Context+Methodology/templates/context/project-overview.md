@@ -15,9 +15,9 @@ Sagittariuz is building a digital flagship for Attraqtive Label, a premium desig
 1. Arrive through the homepage, collection or search.
 2. Filter the catalogue and open a product or quick view.
 3. Compare gallery views and choose an eligible size and colour.
-4. Save the product, add a variant to the bag or take the consultation route. A guest sees the demo customer sign-in after choosing a valid variant. The selected style and size carry through sign-in.
-5. Review quantities and subtotal, then complete a simulated guest checkout.
-6. For bespoke enquiries, complete a local form or preview a stylist message.
+4. Save the product, add a variant to the bag or take the consultation route. Shopping stays open to guests.
+5. Review quantities and subtotal, then complete a simulated guest checkout. Optional demo sign-in keeps a receipt in the customer account.
+6. For bespoke enquiries, complete a local form to receive a reference and create an owner queue item, or preview a stylist message.
 
 ## Features
 

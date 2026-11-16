@@ -12,7 +12,7 @@ import { DemoSignIn } from "./demo-sign-in";
 export function CustomerAccount() {
   const router = useRouter();
   const { ready, role, signOut } = useDemoAuth();
-  const receipts = useDemoOrders(state => state.receipts);
+  const receipts = useDemoOrders(state => state.receipts).filter(receipt => receipt.customer);
   const saved = useShop(state => state.saved.length);
   const quantity = useShop(state => state.lines.reduce((count, line) => count + line.quantity, 0));
 
@@ -38,7 +38,7 @@ export function CustomerAccount() {
       <p className="fine">Sample receipts completed in this browser.</p>
       {receipts.length ? receipts.map(receipt => <details className="product-detail receipt" key={receipt.id}>
         <summary>{receipt.id} · {receiptDate(receipt.createdAt)} · {money(receiptTotal(receipt))}</summary>
-        <p>{receipt.delivery === "boutique" ? "Boutique collection" : "Standard demo delivery"} · Simulated order</p>
+        <p>{receipt.delivery === "boutique" ? "Boutique collection" : "Standard demo delivery"} · {receipt.fulfilment} · {receipt.payment}</p>
         <ul>{receipt.items.map(item => <li key={[item.sku, item.colour, item.size].join("/")}>{item.title} · {item.colour} / {item.size} · Qty {item.quantity}</li>)}</ul>
       </details>) : <p>Complete a demo checkout to see a receipt here.</p>}
     </section>

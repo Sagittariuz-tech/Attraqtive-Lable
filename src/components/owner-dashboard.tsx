@@ -5,10 +5,11 @@ import { useState, type ReactNode } from "react";
 import { Activity, ArrowRight, Download, PackageSearch, ShoppingBag, TrendingUp } from "lucide-react";
 import { categories, categoryName, products } from "@/data/catalogue";
 import { demoAccounts, useDemoAuth } from "@/lib/demo-auth";
-import { receiptDate, useDemoOrders } from "@/lib/demo-orders";
+import { fulfilmentStatuses, nextFulfilment, paymentStatuses, receiptDate, useDemoOrders, type DemoReceipt } from "@/lib/demo-orders";
 import { money } from "@/lib/commerce";
-import { netTotal, orderStatuses, ownerReport, reportCsv, reportPeriods, seedOwnerReport } from "@/lib/owner-report";
+import { netTotal, ownerReport, reportCsv, reportPeriods, seedOwnerReport } from "@/lib/owner-report";
 import { DemoSignIn } from "./demo-sign-in";
+import { OwnerEnquiries } from "./owner-enquiries";
 
 const whole = new Intl.NumberFormat("en-IN");
 const percent = (value: number | null) => value === null ? "—" : new Intl.NumberFormat("en-IN", { style: "percent", maximumFractionDigits: 1 }).format(value);
@@ -35,6 +36,29 @@ function ReportTable({ label, children }: { label: string; children: ReactNode }
   return <div className="report-scroll" tabIndex={0} role="region" aria-label={label}><table>{children}</table></div>;
 }
 
+function OrderActions({ receipt }: { receipt: DemoReceipt }) {
+  const update = useDemoOrders(state => state.updateOrder);
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState("");
+  const next = nextFulfilment(receipt);
+
+  async function apply(action: "advance" | "refund" | "restock") {
+    setPending(true);
+    setMessage("");
+    try { await update(receipt.id, action, receipt.fulfilment); }
+    catch { setMessage("The demo order couldn’t be updated."); }
+    finally { setPending(false); }
+  }
+
+  return <div className="order-actions">
+    {next && <button type="button" className="plain-link" disabled={pending} onClick={() => void apply("advance")}>Mark {next.toLowerCase()}</button>}
+    {receipt.payment === "Paid" && <button type="button" className="plain-link" disabled={pending} onClick={() => void apply("refund")}>Simulate full refund</button>}
+    {receipt.payment === "Refunded" && !receipt.restocked && <button type="button" className="plain-link" disabled={pending} onClick={() => void apply("restock")}>Return units to stock</button>}
+    {receipt.restocked && <p className="fine">Units returned to sample stock.</p>}
+    {message && <p className="error" role="alert">{message}</p>}
+  </div>;
+}
+
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [now] = useState(Date.now);
   const [data] = useState(() => seedOwnerReport(now));
@@ -42,19 +66,21 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [category, setCategory] = useState("");
   const [rank, setRank] = useState<DemandKey>("units");
   const [status, setStatus] = useState("");
+  const [payment, setPayment] = useState("");
   const [source, setSource] = useState("");
   const [orderLimit, setOrderLimit] = useState(8);
   const receipts = useDemoOrders(state => state.receipts);
-  const report = ownerReport(data, receipts, now, period, category);
+  const reportNow = receipts.reduce((latest, receipt) => Math.max(latest, Date.parse(receipt.refundedAt ?? receipt.createdAt)), now);
+  const report = ownerReport(data, receipts, reportNow, period, category);
   const demand = [...report.demand].sort((a, b) => b[rank] - a[rank] || b.units - a.units);
   const leadingStyle = [...report.demand].sort((a, b) => b.units - a.units)[0];
   const enquiryStyle = [...report.demand].sort((a, b) => b.enquiries - a.enquiries)[0];
-  const orders = report.orders.filter(order => (!status || order.status === status) && (!source || order.source === source));
+  const orders = report.orders.filter(order => (!status || order.fulfilment === status) && (!payment || order.payment === payment) && (!source || order.source === source));
   const maxBar = Math.max(1, ...report.trend.map(point => point.value));
-  const stockouts = report.lowStock.filter(item => item.variant.stock === 0);
-  const stockPriority = [...report.demand].filter(item => item.units > 0 && stockouts.some(({ product }) => product.sku === item.product.sku))
-    .sort((a, b) => b.units - a.units)[0];
-  const awaiting = report.orders.filter(order => order.status === "Processing" || order.status === "Ready for pickup");
+  const lowStock = report.variants.filter(item => item.onHand <= 1);
+  const stockouts = lowStock.filter(item => item.onHand === 0);
+  const stockPriority = lowStock.find(item => item.units > 0);
+  const awaiting = report.orders.filter(order => order.payment === "Paid" && (order.fulfilment === "Processing" || order.fulfilment === "Ready for pickup"));
   const browserCount = report.orders.filter(order => order.source === "This browser").length;
 
   function download() {
@@ -74,9 +100,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     </div>
     <nav aria-label="Dashboard sections" className="collection-nav dashboard-nav">
       <a href="#sales"><TrendingUp size={16} /> Sales</a><a href="#demand"><Activity size={16} /> Style demand</a>
-      <a href="#inventory"><PackageSearch size={16} /> Stock &amp; enquiries</a><a href="#orders"><ShoppingBag size={16} /> Orders</a>
+      <a href="#inventory"><PackageSearch size={16} /> Stock</a><a href="#orders"><ShoppingBag size={16} /> Orders</a><a href="#enquiries">Enquiry queue</a>
     </nav>
-    <p className="notice">Seeded sales, costs and product traffic are illustrative. {browserCount ? browserCount + " simulated order" + (browserCount === 1 ? "" : "s") + " from this browser included in this view." : "Completed demo orders from this browser appear here when they match the filters."}</p>
+    <p className="notice">Demo owner access. Seeded sales, costs and product traffic are illustrative. {browserCount ? browserCount + " simulated order" + (browserCount === 1 ? "" : "s") + " from this browser included in this view." : "Completed demo orders from this browser appear here when they match the filters."}</p>
     <div className="owner-filters">
       <label>Period<select value={period} onChange={event => { setPeriod(Number(event.target.value) as typeof period); setOrderLimit(8); }}>
         {reportPeriods.map(days => <option key={days} value={days}>Last {days} days</option>)}
@@ -87,7 +113,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     </div>
 
     <section id="sales" className="report-section">
-      <div className="report-title"><h2>Sales overview</h2><p className="fine">Net sales exclude refunded and cancelled orders.</p></div>
+      <div className="report-title"><h2>Sales overview</h2><p className="fine">Net sales use order dates. Refund totals use refund dates.</p></div>
       <dl className="owner-metrics">
         <Metric label="Net sales" value={money(report.netSales)} detail={report.previousSales ? percent((report.netSales - report.previousSales) / report.previousSales) + " vs. previous period" : "No previous period sales"} />
         <Metric label="Sales orders" value={whole.format(report.paidOrders)} detail={whole.format(report.units) + " units sold"} />
@@ -131,44 +157,49 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
     <section id="inventory" className="report-section">
       <div className="report-title"><div><h2>Stock &amp; follow-ups</h2><p className="fine">Current sample variant stock and orders that need attention.</p></div></div>
-      {stockPriority && <p className="notice"><strong>Restock candidate:</strong> {stockPriority.product.title} sold {stockPriority.units} units in this period and has sample sizes out of stock.</p>}
+      {stockPriority && <p className="notice"><strong>Restock candidate:</strong> {stockPriority.product.title} · {stockPriority.variant.colour} / {stockPriority.variant.size} sold {stockPriority.units} units in this period and has {stockPriority.onHand} on hand.</p>}
       <div className="report-columns operations-columns">
-        <section className="report-panel"><h3>Low or out of stock</h3>
-          <p className="fine">{stockouts.length} sizes out of stock · {report.lowStock.length - stockouts.length} sizes with one left</p>
-          <ReportTable label="Low stock variants"><thead><tr><th scope="col">Style</th><th scope="col">Size</th><th scope="col">On hand</th></tr></thead>
-            <tbody>{report.lowStock.map(({ product, variant }) => <tr key={variant.id}><th scope="row">{product.title}<small>{variant.id}</small></th><td>{variant.size}</td><td>
-              <span className="report-badge" data-alert={variant.stock === 0}>{variant.stock === 0 ? "Out of stock" : "1 left"}</span></td></tr>)}</tbody>
+        <section className="report-panel"><h3>Demand by variant</h3>
+          <p className="fine">{stockouts.length} variants out of stock · {lowStock.length - stockouts.length} with one left. On-hand counts reflect demo orders in this browser.</p>
+          <ReportTable label="Variant demand and stock"><thead><tr><th scope="col">Style</th><th scope="col">Size / colour</th><th scope="col">Units sold</th><th scope="col">On hand</th></tr></thead>
+            <tbody>{report.variants.map(({ product, variant, units, onHand }) => <tr key={variant.id}><th scope="row">{product.title}<small>{variant.id}</small></th><td>{variant.size} / {variant.colour}</td><td>{units}</td><td>
+              <span className="report-badge" data-alert={onHand === 0}>{onHand}</span></td></tr>)}</tbody>
           </ReportTable>
-          {!report.lowStock.length && <p className="fine">No low-stock variants in this view.</p>}
+          {!report.variants.length && <p className="fine">No retail variants in this view.</p>}
         </section>
         <section className="report-panel"><h3>Order follow-up</h3>
-          <ul className="follow-ups">{awaiting.slice(0, 6).map(order => <li key={order.id}><strong>{order.id}</strong><span>{order.status} · {order.channel}</span></li>)}</ul>
+          <ul className="follow-ups">{awaiting.slice(0, 6).map(order => <li key={order.id}><strong>{order.id}</strong><span>{order.fulfilment} · {order.channel}</span></li>)}</ul>
           {!awaiting.length && <p className="fine">No processing orders or pickups in this view.</p>}
-          <h3>Bespoke enquiries</h3>
-          <ul className="follow-ups">{[...report.demand].filter(item => item.enquiries > 0).sort((a, b) => b.enquiries - a.enquiries).slice(0, 4).map(item =>
-            <li key={item.product.sku}><strong>{item.product.title}</strong><span>{item.enquiries} sample enquiries</span></li>)}</ul>
+          <a className="text-link" href="#enquiries">Open enquiry queue <ArrowRight size={15} /></a>
         </section>
       </div>
     </section>
 
     <section id="orders" className="report-section">
-      <div className="report-title"><div><h2>Order register</h2><p className="fine">Search by status and source, inspect order lines or export this view.</p></div>
+      <div className="report-title"><div><h2>Order register</h2><p className="fine">Filter the register or open an order from this browser to update its demo status.</p></div>
         <button className="button button-outline" type="button" disabled={!orders.length} onClick={download}><Download size={17} /> Export CSV</button></div>
       <div className="owner-filters">
-        <label>Order status<select value={status} onChange={event => { setStatus(event.target.value); setOrderLimit(8); }}>
-          <option value="">All statuses</option>{orderStatuses.map(item => <option key={item}>{item}</option>)}</select></label>
+        <label>Fulfilment status<select value={status} onChange={event => { setStatus(event.target.value); setOrderLimit(8); }}>
+          <option value="">All fulfilment states</option>{fulfilmentStatuses.map(item => <option key={item}>{item}</option>)}</select></label>
+        <label>Payment status<select value={payment} onChange={event => { setPayment(event.target.value); setOrderLimit(8); }}>
+          <option value="">All payment states</option>{paymentStatuses.map(item => <option key={item}>{item}</option>)}</select></label>
         <label>Order source<select value={source} onChange={event => { setSource(event.target.value); setOrderLimit(8); }}>
           <option value="">All sources</option><option>Seeded</option><option>This browser</option></select></label>
       </div>
       <p className="fine" role="status">{orders.length} {orders.length === 1 ? "order" : "orders"} in view</p>
       {orders.length > 0 && <ReportTable label="Owner order register">
-        <thead><tr><th scope="col">Order / items</th><th scope="col">Date</th><th scope="col">Customer / city</th><th scope="col">Channel / source</th><th scope="col">Status</th><th scope="col">Net sales</th></tr></thead>
-        <tbody>{orders.slice(0, orderLimit).map(order => <tr key={order.id}><th scope="row"><details className="report-order"><summary>{order.id}</summary>
-          <ul>{order.items.map((item, index) => <li key={item.sku + index}>{products.find(product => product.sku === item.sku)?.title ?? item.sku} · {item.size} · Qty {item.units}</li>)}</ul></details>
+        <thead><tr><th scope="col">Order / items</th><th scope="col">Date</th><th scope="col">Customer / city</th><th scope="col">Channel / source</th><th scope="col">Fulfilment</th><th scope="col">Payment</th><th scope="col">Net sales</th></tr></thead>
+        <tbody>{orders.slice(0, orderLimit).map(order => {
+          const receipt = receipts.find(item => item.id === order.id);
+          return <tr key={order.id}><th scope="row"><details className="report-order"><summary>{order.id}</summary>
+          <ul>{order.items.map((item, index) => <li key={item.sku + index}>{products.find(product => product.sku === item.sku)?.title ?? item.sku} · {item.size} / {item.colour} · Qty {item.units}</li>)}</ul>
+          {receipt && <OrderActions receipt={receipt} />}</details>
         </th><td>{receiptDate(new Date(order.at).toISOString())}</td><td>{order.customer}<small>{order.city}</small></td><td>{order.channel}<small>{order.source}</small></td>
-          <td><span className="report-badge">{order.status}</span></td><td>{money(netTotal(order))}</td></tr>)}</tbody>
+          <td><span className="report-badge">{order.fulfilment}</span></td><td><span className="report-badge">{order.payment}</span></td><td>{money(netTotal(order))}</td></tr>;
+        })}</tbody>
       </ReportTable>}
       {orders.length > orderLimit && <button className="button button-outline load-more" type="button" onClick={() => setOrderLimit(limit => limit + 12)}>Show more orders <ArrowRight size={16} /></button>}
     </section>
+    <OwnerEnquiries />
   </>;
 }

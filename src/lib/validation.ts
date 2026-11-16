@@ -26,6 +26,6 @@ export const consultationSchema = z.object({
   service: z.enum(["Bespoke design", "Bridal consultation", "Styling appointment", "Boutique visit"]),
   method: z.enum(["At the boutique", "Phone call"]),
   category: z.string().max(80),
-  date: z.string().refine(value => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), "Choose a valid date."),
+  date: z.union([z.literal(""), z.iso.date()], { error: "Choose a valid date." }),
   notes: z.string().trim().max(600, "Keep your notes under 600 characters."),
 });

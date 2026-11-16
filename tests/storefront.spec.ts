@@ -1,14 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-async function signInFromBag(page: import("@playwright/test").Page) {
-  const dialog = page.getByRole("dialog", { name: "Sign in to add to bag" });
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Use sample credentials" }).click();
-  await dialog.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(dialog).toBeHidden();
-}
-
 test("shop a sample garment through checkout", async ({ page }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -31,12 +23,7 @@ test("shop a sample garment through checkout", async ({ page }, info) => {
   await page.getByRole("button", { name: "Save Garnet Zardozi Lehenga" }).first().click();
   await page.getByRole("button", { name: "M", exact: true }).click();
   await page.getByRole("button", { name: "Add to bag" }).click();
-  const login = page.getByRole("dialog", { name: "Sign in to add to bag" });
-  await expect(login.getByText("Garnet Zardozi Lehenga · Garnet · M", { exact: true })).toBeVisible();
-  await login.getByRole("button", { name: "Keep browsing" }).click();
-  await expect(page.getByRole("button", { name: "Open shopping bag", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Add to bag" }).click();
-  await signInFromBag(page);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.getByRole("button", { name: "Open shopping bag, 1 item" }).click();
   await page.getByRole("button", { name: /Increase quantity/ }).click();
   await expect(page.getByRole("dialog").getByText("₹57,000").last()).toBeVisible();
@@ -47,6 +34,12 @@ test("shop a sample garment through checkout", async ({ page }, info) => {
   await page.getByRole("button", { name: "Complete demo order" }).click();
   await expect(page.getByText("Enter a valid six-digit Indian PIN code.")).toBeVisible();
   await page.getByLabel("Full name").fill("Demo Guest");
+  await page.getByRole("button", { name: "Sign in to save this receipt to your account" }).click();
+  const login = page.getByRole("dialog", { name: "Customer sign-in" });
+  await login.getByRole("button", { name: "Use sample credentials" }).click();
+  await login.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(login).toBeHidden();
+  await expect(page.getByLabel("Full name")).toHaveValue("Demo Guest");
   await page.getByLabel("Email", { exact: true }).fill("guest@example.test");
   await page.getByLabel("Street address").fill("1 Sample Street");
   await page.getByLabel("City", { exact: true }).fill("Visakhapatnam");
@@ -84,8 +77,22 @@ test("filters, consultation and AI concept journeys", async ({ page }) => {
   await page.getByRole("link", { name: "Request a custom design" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Demo Guest");
   await page.getByLabel("Email or phone").fill("demo@example.test");
-  await page.getByRole("button", { name: "Preview consultation request" }).click();
-  await expect(page.getByRole("heading", { name: "Consultation preview ready" })).toBeVisible();
+  await page.getByRole("button", { name: "Submit demo enquiry" }).click();
+  await expect(page.getByRole("heading", { name: "Demo enquiry received" })).toBeVisible();
+  const id = (await page.getByText(/^ENQ-.*Bespoke design/).textContent())!.split(" · ")[0];
+  await page.goto("/admin/");
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("combobox", { name: "Enquiry source" }).selectOption("This browser");
+  const enquiry = page.locator(".enquiry-entry").filter({ hasText: id });
+  await enquiry.locator("summary").click();
+  await enquiry.getByRole("combobox", { name: "Enquiry stage" }).selectOption("Contacted");
+  await enquiry.getByLabel("Follow-up date").fill("2026-11-30");
+  await enquiry.getByRole("button", { name: "Save enquiry" }).click();
+  await expect(enquiry.locator("summary")).toContainText("Contacted · Follow-up 2026-11-30");
+  expect(await page.evaluate(() => localStorage.getItem("attraqtive-demo-enquiries"))).not.toContain("demo@example.test");
+  await page.reload();
+  await expect(enquiry.locator("summary")).toContainText("Contacted · Follow-up 2026-11-30");
   await page.goto("/contact/");
   await page.getByRole("button", { name: "Preview WhatsApp enquiry" }).click();
   await expect(page.getByRole("dialog").getByText("The boutique’s WhatsApp number is awaiting confirmation.")).toBeVisible();
@@ -95,8 +102,13 @@ test("filters, consultation and AI concept journeys", async ({ page }) => {
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "View sample comparison" }).click();
   await expect(page.getByRole("slider")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Illustrative comparison" }).getByAltText("Garnet lehenga displayed on a dress form")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Illustrative comparison" }).getByAltText("A model in an illustrative garnet bridal lehenga")).toBeVisible();
   await page.getByRole("button", { name: "Clear comparison" }).click();
   await expect(page.getByRole("slider")).toHaveCount(0);
+  await page.goto("/virtual-atelier/?garment=olive-silk-anarkali");
+  await expect(page.getByText("A paired comparison is unavailable for this style.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View sample comparison" })).toHaveCount(0);
 });
 
 test("browse and zoom model shots, then move a saved variant into the bag", async ({ page }) => {
@@ -126,7 +138,6 @@ test("browse and zoom model shots, then move a saved variant into the bag", asyn
   await expect(page.getByRole("status").filter({ hasText: "Select an available size" })).toBeVisible();
   await page.getByRole("button", { name: "L", exact: true }).click();
   await page.getByRole("button", { name: "Move to bag", exact: true }).click();
-  await signInFromBag(page);
   await expect(page.getByRole("status").filter({ hasText: "Moved from your wishlist" })).toBeVisible();
   await page.goto("/wishlist/");
   await expect(page.getByRole("heading", { name: "Nothing saved yet" })).toBeVisible();
@@ -136,6 +147,44 @@ test("browse and zoom model shots, then move a saved variant into the bag", asyn
   await expect(page.getByRole("heading", { name: "Your bag is empty" })).toBeVisible();
   await page.goto("/wishlist/");
   await expect(page.getByRole("link", { name: /Move to bag.*Garnet/ })).toBeVisible();
+});
+
+test("guest checkout consumes stock and owner payment, fulfilment and restock actions stay separate", async ({ page }) => {
+  const garment = "/products/garnet-zardozi-lehenga/";
+  await page.goto(garment);
+  await page.getByRole("button", { name: "XL", exact: true }).click();
+  await page.getByRole("button", { name: "Add to bag" }).click();
+  await page.getByRole("button", { name: "Open shopping bag, 1 item" }).click();
+  await page.getByRole("link", { name: "Demo checkout" }).click();
+  await expect(page.getByRole("heading", { name: "Guest checkout" })).toBeVisible();
+  await page.getByLabel("Full name").fill("Sample guest");
+  await page.getByLabel("Email", { exact: true }).fill("guest@example.test");
+  await page.getByRole("combobox", { name: "Delivery method" }).selectOption("boutique");
+  await page.getByRole("button", { name: "Complete demo order" }).click();
+  await expect(page.getByRole("heading", { name: "Demo order complete" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "View demo receipt" })).toHaveCount(0);
+  await page.goto(garment);
+  await expect(page.getByRole("button", { name: "XL", exact: true })).toBeDisabled();
+
+  await page.goto("/admin/");
+  await page.getByRole("button", { name: "Use sample credentials" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("combobox", { name: "Order source" }).selectOption("This browser");
+  const variant = page.getByRole("region", { name: "Variant demand and stock" }).getByRole("row").filter({ hasText: "AL-GAR-XL" });
+  await expect(variant.getByRole("cell").last()).toHaveText("0");
+  const order = page.getByRole("region", { name: "Owner order register" }).getByRole("row").filter({ hasText: "Demo guest" });
+  await order.locator("summary").click();
+  await order.getByRole("button", { name: "Mark ready for pickup" }).click();
+  await expect(order.getByText("Ready for pickup", { exact: true })).toBeVisible();
+  await expect(order.getByText("Paid", { exact: true })).toBeVisible();
+  await order.getByRole("button", { name: "Simulate full refund" }).click();
+  await expect(order.getByText("Refunded", { exact: true })).toBeVisible();
+  await expect(order.getByText("Cancelled", { exact: true })).toBeVisible();
+  await expect(variant.getByRole("cell").last()).toHaveText("0");
+  await order.getByRole("button", { name: "Return units to stock" }).click();
+  await expect(variant.getByRole("cell").last()).toHaveText("1");
+  await page.goto(garment);
+  await expect(page.getByRole("button", { name: "XL", exact: true })).toBeEnabled();
 });
 
 test("demo roles route to separate account views and owner reports can be filtered and exported", async ({ page }) => {

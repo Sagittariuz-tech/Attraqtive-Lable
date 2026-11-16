@@ -336,7 +336,7 @@ blockquote { margin: 0; }
 .account-link svg { flex: none; }
 .category-grid:has(> :nth-child(4)) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .newly-added { border-top: 1px solid var(--line); }
-.pending-item { font-weight: 650; margin-bottom: .75rem; }
+.checkout-sign-in { display: inline-block; margin-bottom: 1rem; }
 .demo-sign-in { max-width: 35rem; }
 .demo-sign-in .button-row { margin-top: .8rem; margin-bottom: .65rem; }
 .demo-sign-in .fine { overflow-wrap: anywhere; }
@@ -396,6 +396,13 @@ blockquote { margin: 0; }
 .follow-ups span { color: var(--muted); font-size: .78rem; }
 .report-order summary { cursor: pointer; }
 .report-order ul { padding-left: 1rem; font-weight: 400; }
+.order-actions { display: grid; justify-items: start; gap: .35rem; margin-top: .6rem; }
+#inventory .report-scroll { max-height: 28rem; }
+.enquiry-entry summary { line-height: 1.5; }
+.enquiry-meta { display: flex; margin-top: .7rem; gap: .45rem 1.35rem; flex-wrap: wrap; }
+.enquiry-meta dt { font-size: .76rem; color: var(--muted); }
+.owner-filters input[type=date] { border: 1px solid var(--line); padding: .55rem; min-height: 42px; }
+.enquiry-feedback { min-height: 1.3em; }
 @media (max-width: 850px) {
   .report-columns { grid-template-columns: minmax(0, 1fr); }
 }

@@ -7,6 +7,8 @@ import { ArrowRight, Camera, Heart, Search, SlidersHorizontal } from "lucide-rea
 import { categories, categoryName, products, type Product } from "@/data/catalogue";
 import { emptyFilters, filterProducts, money, productPrice, type Filters } from "@/lib/commerce";
 import { useShop } from "@/lib/store";
+import { useDemoOrders } from "@/lib/demo-orders";
+import { useDemoAuth } from "@/lib/demo-auth";
 import { Photo } from "./media";
 import { Overlay } from "./shell";
 
@@ -22,6 +24,7 @@ export function Price({ product }: { product: Product }) {
 }
 
 export function ProductCard({ product, action }: { product: Product; action?: ReactNode }) {
+  const ready = useDemoAuth(state => state.ready);
   const href = "/products/" + product.slug + "/";
   const cover = product.media.find(asset => asset.role === "model") ?? product.media[0];
   const secondary = product.media.find(asset => asset.role === "detail");
@@ -36,7 +39,7 @@ export function ProductCard({ product, action }: { product: Product; action?: Re
     <p className="eyebrow">{categoryName(product.category)}</p>
     <h3><Link href={href}>{product.title}</Link></h3>
     <div className="product-meta"><Price product={product} />
-      <Overlay trigger={<button className="plain-link">Quick view<span className="sr-only"> of {product.title}</span></button>}
+      <Overlay trigger={<button className="plain-link" disabled={!ready}>Quick view<span className="sr-only"> of {product.title}</span></button>}
         title={product.title} description="Sample garment preview">
         <div className="quick-view"><div className="quick-image"><Photo {...cover} /></div>
         <div><p>{product.description}</p><p><Price product={product} /></p><p className="fine">Illustrative imagery</p><Link className="button button-dark" href={href}>View garment <ArrowRight size={15} /></Link></div></div>
@@ -67,7 +70,8 @@ export function SortedCatalogue() {
 export function Catalogue({ category = "", search = false, sort = "" }: { category?: string; search?: boolean; sort?: string }) {
   const [filters, setFilters] = useState<Filters>({ ...emptyFilters, category, sort });
   const [visible, setVisible] = useState(6);
-  const results = filterProducts(filters);
+  const stock = useDemoOrders(state => state.stock);
+  const results = filterProducts(filters, products, stock);
   const update = (key: keyof Filters, value: string) => {
     setFilters(current => ({ ...current, [key]: value }));
     setVisible(6);

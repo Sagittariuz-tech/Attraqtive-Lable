@@ -5,7 +5,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import { type ReactNode } from "react";
 import { useShop } from "@/lib/store";
-import { money, resolveBag, unitPrice } from "@/lib/commerce";
+import { availableUnits, money, resolveBag, unitPrice } from "@/lib/commerce";
+import { useDemoOrders } from "@/lib/demo-orders";
 import { Photo } from "./media";
 
 export function EmptyBag() {
@@ -19,6 +20,7 @@ function DrawerLink({ drawer, children, href, className }: { drawer: boolean; ch
 
 export function BagContents({ drawer = false }: { drawer?: boolean }) {
   const lines = useShop(state => state.lines);
+  const stock = useDemoOrders(state => state.stock);
   const change = useShop(state => state.setQuantity);
   const save = useShop(state => state.saveLine);
   const items = resolveBag(lines);
@@ -33,13 +35,14 @@ export function BagContents({ drawer = false }: { drawer?: boolean }) {
         <div className="quantity">
           <button className="icon-button" aria-label={"Decrease quantity of " + product.title + ", " + variant.size} disabled={quantity <= 1} onClick={() => change(id, quantity - 1)}><Minus size={15} /></button>
           <span aria-label="Quantity">{quantity}</span>
-          <button className="icon-button" aria-label={"Increase quantity of " + product.title + ", " + variant.size} disabled={quantity >= variant.stock} onClick={() => change(id, quantity + 1)}><Plus size={15} /></button>
+          <button className="icon-button" aria-label={"Increase quantity of " + product.title + ", " + variant.size} disabled={quantity >= availableUnits(variant, stock)} onClick={() => change(id, quantity + 1)}><Plus size={15} /></button>
         </div>
         <div className="bag-actions"><button className="plain-link" onClick={() => change(id, 0)}>Remove</button><button className="plain-link" onClick={() => save(id)}>Save for later</button></div>
       </div>
       <strong>{money(total)}</strong>
     </li>)}</ul>
     <div className="bag-summary">
+      {items.some(item => item.quantity > availableUnits(item.variant, stock)) && <p className="notice">Sample availability changed. Review your quantities before placing the order.</p>}
       <p className="subtotal"><span>Sample subtotal</span><strong aria-live="polite">{money(subtotal)}</strong></p>
       <p className="fine">Demo prices in INR. Delivery is arranged separately.</p>
       <DrawerLink drawer={drawer} href="/checkout/" className="button button-dark">Demo checkout <ArrowRight size={16} /></DrawerLink>

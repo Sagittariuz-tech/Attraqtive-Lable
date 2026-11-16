@@ -7,7 +7,8 @@ import { ArrowLeft, ArrowRight, Heart, Menu, Search, ShoppingBag, UserRound, X }
 import { brand } from "@/data/brand";
 import { useShop } from "@/lib/store";
 import { useDemoAuth } from "@/lib/demo-auth";
-import { useDemoOrders } from "@/lib/demo-orders";
+import { receiptStorageKey, useDemoOrders } from "@/lib/demo-orders";
+import { enquiryStorageKey, useDemoEnquiries } from "@/lib/demo-enquiries";
 import { BagContents } from "./shopping";
 import type { ReactNode } from "react";
 
@@ -47,8 +48,14 @@ export function Header() {
   const accountLabel = role === "admin" ? "Dashboard" : role === "customer" ? "Account" : "Sign in";
   useEffect(() => {
     void Promise.allSettled([
-      useShop.persist.rehydrate(), useDemoOrders.persist.rehydrate(), useDemoAuth.persist.rehydrate(),
+      useShop.persist.rehydrate(), useDemoOrders.persist.rehydrate(), useDemoAuth.persist.rehydrate(), useDemoEnquiries.persist.rehydrate(),
     ]).then(() => useDemoAuth.setState({ ready: true }));
+    function sync(event: StorageEvent) {
+      if (event.key === receiptStorageKey) void useDemoOrders.persist.rehydrate();
+      if (event.key === enquiryStorageKey) void useDemoEnquiries.persist.rehydrate();
+    }
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
   return <>
     <a className="skip-link" href="#main-content">Skip to content</a>

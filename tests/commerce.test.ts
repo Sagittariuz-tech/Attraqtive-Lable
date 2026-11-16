@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { changeQuantity, emptyFilters, filterProducts, money, normalizeLines, resolveBag } from "../src/lib/commerce";
 import { checkoutSchema, consultationSchema } from "../src/lib/validation";
 import { ownerReport, reportCsv, seedOwnerReport } from "../src/lib/owner-report";
+import { remainingDemoStock, type DemoReceipt } from "../src/lib/demo-orders";
 
 test("bag clamps duplicate quantities to stock and ignores stale and unbuyable data", () => {
   assert.deepEqual(normalizeLines([{ id: "AL-GAR-S", quantity: 2 }, { id: "AL-GAR-S", quantity: 3 },
@@ -25,8 +26,10 @@ test("owner metrics reconcile period sales, returns, category filters and a brow
   const now = Date.parse("2026-11-16T09:00:00.000Z");
   const sample = seedOwnerReport(now);
   const base = ownerReport(sample, [], now, 30, "");
-  const report = ownerReport(sample, [{ id: "DEMO-TEST", createdAt: new Date(now).toISOString(), delivery: "boutique",
-    items: [{ sku: "AL-GAR", title: "Garnet Zardozi Lehenga", size: "M", colour: "Garnet", quantity: 2, unitPrice: 2850000 }] }], now, 30, "");
+  const receipt: DemoReceipt = { id: "DEMO-TEST", createdAt: new Date(now).toISOString(), delivery: "boutique",
+    customer: false, fulfilment: "Processing", payment: "Paid", restocked: false,
+    items: [{ sku: "AL-GAR", title: "Garnet Zardozi Lehenga", size: "M", colour: "Garnet", quantity: 2, unitPrice: 2850000 }] };
+  const report = ownerReport(sample, [receipt], now, 30, "");
   assert.equal(report.netSales - base.netSales, 5700000);
   assert.equal(report.units - base.units, 2);
   assert.equal(report.paidOrders - base.paidOrders, 1);
@@ -37,6 +40,12 @@ test("owner metrics reconcile period sales, returns, category filters and a brow
   const menswear = ownerReport(sample, [], now, 7, "menswear");
   assert.ok(menswear.demand.length > 0 && menswear.demand.every(item => item.product.category === "menswear"));
   assert.match(reportCsv(report.orders.filter(order => order.source === "This browser")), /"DEMO-TEST".*"57000.00"/);
+  assert.equal(report.variants.find(item => item.variant.id === "AL-GAR-M")?.onHand, 2);
+  const refunded: DemoReceipt = { ...receipt, payment: "Refunded", fulfilment: "Cancelled", refundedAt: receipt.createdAt };
+  assert.equal(remainingDemoStock([refunded]).get("AL-GAR-M"), 2);
+  assert.equal(remainingDemoStock([{ ...refunded, restocked: true }]).has("AL-GAR-M"), false);
+  const olderRefund = ownerReport(sample, [{ ...refunded, createdAt: new Date(now - 40 * 86400000).toISOString() }], now, 30, "");
+  assert.equal(olderRefund.refundValue - base.refundValue, 5700000);
 });
 
 test("validates sample checkout and consultation data", () => {

@@ -37,7 +37,8 @@ export function TryOnConcept() {
   const [showResult, setShowResult] = useState(false);
   const [comparison, setComparison] = useState(50);
   const [consent, setConsent] = useState(false);
-  const modelImage = garment.media.find(media => media.role === "model") ?? garment.media[0];
+  const productImage = garment.media.find(media => media.role === "product");
+  const modelImage = garment.media.find(media => media.role === "model");
 
   return <>
     <p className="notice">Concept preview. This sample comparison uses prepared illustrations and leaves photo upload unavailable. Actual fit, sizing, drape, texture and colour can differ.</p>
@@ -48,12 +49,17 @@ export function TryOnConcept() {
           const selected = findProduct(event.target.value);
           if (selected) { setGarment(selected); setShowResult(false); setComparison(50); }
         }}>{products.map(product => <option key={product.slug} value={product.slug}>{product.title}</option>)}</select></label>
-        <label className="consent"><input type="checkbox" checked={consent} onChange={event => { setConsent(event.target.checked); if (!event.target.checked) setShowResult(false); }} />I understand this uses a preset reference and an illustrative model image.</label>
-        <button className="button button-dark" disabled={!consent} onClick={() => setShowResult(true)}>View sample comparison <ArrowRight size={16} /></button>
+        {productImage && modelImage ? <>
+          <label className="consent"><input type="checkbox" checked={consent} onChange={event => { setConsent(event.target.checked); if (!event.target.checked) setShowResult(false); }} />I understand this uses two illustrative views of the selected garment.</label>
+          <button className="button button-dark" disabled={!consent} onClick={() => setShowResult(true)}>View sample comparison <ArrowRight size={16} /></button>
+        </> : <div className="notice">
+          <p>A paired comparison is unavailable for this style. Choose Garnet Zardozi Lehenga to try the sample comparison.</p>
+          <Link className="text-link" href={"/products/" + garment.slug + "/"}>View this garment <ArrowRight size={16} /></Link>
+        </div>}
       </div>
-      {showResult && <section className="comparison-panel" aria-label="Illustrative comparison">
+      {showResult && productImage && modelImage && <section className="comparison-panel" aria-label="Illustrative comparison">
         <div className="comparison-image">
-          <Photo image="garnet-product" alt="Preset garment reference on a dress form" />
+          <Photo {...productImage} />
           <div className="comparison-layer" style={{ clipPath: "inset(0 " + (100 - comparison) + "% 0 0)" }}><Photo {...modelImage} /></div>
           <div className="comparison-line" style={{ left: comparison + "%" }} />
         </div>

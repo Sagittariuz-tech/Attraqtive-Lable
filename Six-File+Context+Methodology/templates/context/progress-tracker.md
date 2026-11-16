@@ -15,11 +15,13 @@ Review the demonstration with the owner, collect approved boutique content and d
 - Implemented browser-persisted wishlist and shopping bag, stock-capped quantities, save for later, and mock checkout validation for delivery or boutique collection. Shoppers can now choose a variant on the product page and move it directly from their wishlist to the bag.
 - Added lookbook, atelier, bespoke journey, local consultation submission, contact and WhatsApp message previews and policy placeholders.
 - Expanded the catalogue to nine sample styles across four categories with a New to the edit section and six generated garment studies.
-- Added demo customer and boutique owner sign-in. Browsing and wishlists remain open. An add-to-bag or wishlist move request prompts only after a valid selection and resumes on successful customer sign-in.
+- Added demo customer and boutique owner sign-in. Browsing, wishlists, bag actions and demo checkout are open to guests. Optional customer sign-in at checkout preserves form fields and enables account receipt history.
 - Added customer receipt history and an owner dashboard with seeded sales, trends, channels, cities, margin, refunds, returning buyers, style demand, variant stock, enquiry and order follow-ups, and filtered CSV export. The register identifies simulated receipts from the current browser separately.
-- Built preset-only Virtual Atelier and Find Your Inspiration concepts with representative outcomes and a bespoke fallback.
+- Built preset-only Virtual Atelier and Find Your Inspiration concepts with representative outcomes and a bespoke fallback. Virtual Atelier offers a comparison only when the chosen garment has both a product image and an on-model image.
+- Connected demo consultation submissions to the owner enquiry queue with editable stages and follow-up dates. Persisted enquiries contain only structured sample details.
+- Reconciled demo checkout with current variant stock. The owner can advance fulfilment, simulate a refund, and separately return units to stock. Variant ranking includes size and colour, and refund reports use the refund date.
 - Added keyboard browsing and 2× zoom to the garment gallery, including focus restoration when the enlarged view closes.
-- Verified the production build, TypeScript, lint, four unit tests, and ten Playwright tests across desktop and mobile profiles. Coverage includes both account roles, cart prompt dismissal and continuation, receipt handoff, report filters/export, homepage and dashboard axe scans, and the prior storefront paths.
+- Verified the production build, TypeScript, lint, four unit tests, and two runs of the twelve-test desktop and mobile browser suite. Coverage includes guest orders, optional checkout sign-in, stock deduction and restock, refund and fulfilment transitions, persisted enquiry updates, paired imagery, dashboard report export, and homepage and dashboard axe scans.
 - Prepared local run instructions, private static deployment steps, media provenance, client walkthrough and production roadmap in the project README.
 
 ## In Progress
@@ -44,7 +46,7 @@ Owner walkthrough and private host setup are pending.
 - The supplied stack examples were blank template placeholders. Use Next.js App Router and a private deployable static export for Stage A, with client-only commerce state and simulated forms.
 - Generated editorial studies illustrate nine sample outfits and are marked in the UI. Owner-supplied photography will replace corresponding media entries.
 - The demo uses illustrative INR prices for retail calculations and two consultation-only garments to verify the bespoke path.
-- Stage A role selection and code validation use public fixtures and per-tab session storage. The static export contains only seeded report data. Local receipts retain variant, amount, delivery choice and timestamp, with contact and address data excluded.
+- Stage A role selection and code validation use public fixtures and per-tab session storage. The static export contains seeded report data. Locally completed orders and submitted enquiries stay in browser storage with contact information, address and free-text notes excluded. Server authorization and real data belong to Stage B.
 - The build normalizes nested static navigation segment paths emitted by Next.js on Windows. The storefront browser suite checks a generated segment URL before exercising navigation.
 - Visual search and try-on concepts use representative fixtures. Actual orders, submissions and AI image processing are approval-dependent production capabilities.
 

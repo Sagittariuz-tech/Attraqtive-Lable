@@ -24,9 +24,9 @@ Check compatibility at installation and commit a lockfile. Stage A needs no secr
 ## Storage Model
 
 ### Demo
-Typed fixtures contain category, collection, product, media and variants with stable IDs, publication/date fields, garment attributes and retail or consultation mode. Variant contains SKU, colour, size, quantity, optional price, sale price and media override. Money uses integer INR paise. Local browser storage holds cart, wishlist and demo receipts. A receipt contains the selected style, variant, amount, quantity, timestamp and delivery type. Checkout and consultation contact and address inputs live in memory and reset on navigation or reload.
+Typed fixtures contain category, collection, product, media and variants with stable IDs, publication/date fields, garment attributes and retail or consultation mode. Variant contains SKU, colour, size, quantity, optional price, sale price and media override. Money uses integer INR paise. Local browser storage holds cart, wishlist, sample enquiries and demo receipts. Receipts record item snapshots, delivery, payment, fulfilment, refund time and restock state. Each enquiry records structured service and occasion details and a follow-up, stage and reference. Checkout and consultation contact, address and free-text inputs live in memory and reset on navigation or reload.
 
-The owner report builds deterministic sample orders and product-level activity across 180 days. It combines those orders with simulated receipts from the current browser, labels each source, and derives sales, demand, stock flags and filtered CSV results. Views, saves, enquiries, unit costs and variant stock are seeded. Browser receipts never contribute to margin or returning-customer estimates.
+The owner report builds deterministic sample orders and product-level activity across 180 days. It combines those orders with simulated receipts from the current browser and labels each source. Variant on-hand stock is derived from starting stock and receipts whose units have not been restocked. Checkout revalidates all lines against this stock before writing the receipt. Receipt and enquiry writes use Web Locks where available and refresh persisted state before mutation. Margin and returning-customer estimates use seeded orders.
 
 ### Production
 - User 1:1 CustomerProfile, 1:N Address, 1:N administrative role assignment. Auth provider owns sessions. Cart and Wishlist can attach to guest session or user. Unique (cartId, variantId) and (wishlistId, productId) pairs.
@@ -38,7 +38,7 @@ The owner report builds deterministic sample orders and product-level activity a
 
 ## Auth and Access Model
 
-Stage A leaves discovery, product pages and wishlists open to guests. The storefront header offers Sign in. Adding a selected variant prompts a demo customer sign-in and resumes the pending action on success. The owner signs in through the same account page and sees a separate owner dashboard. Only the public fixture role is stored in session storage. These client checks demonstrate the journey and protect no real records. Stage B supports optional authenticated accounts, scoped guest sessions and server-enforced staff permissions. Roles cover catalogue/content, consultations, fulfillment and administration with auditable access. Sessions use HttpOnly secure cookies, CSRF safeguards as applicable and throttling. Validate request bodies at boundaries and authorize access to each record.
+Stage A leaves browsing, wishlist, bag and simulated checkout open to guests. The header offers demo sign-in and checkout offers optional sign-in for account receipt history. The owner signs in through the same account page and sees a separate owner dashboard. Client checks use a public fixture role in session storage. Stage B supports optional authenticated accounts, scoped guest sessions and server-enforced staff permissions. Roles cover catalogue/content, consultations, fulfillment and administration with auditable access. Sessions use HttpOnly secure cookies, CSRF safeguards as applicable and throttling. Validate request bodies at boundaries and authorize access to each record.
 
 ## Invariants
 

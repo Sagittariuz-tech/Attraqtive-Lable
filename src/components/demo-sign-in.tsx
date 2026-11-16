@@ -15,6 +15,7 @@ export function DemoSignIn({ allowed = "both", onSignedIn }: { allowed?: DemoRol
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    event.stopPropagation();
     if (!signIn(role, email, code)) {
       setError("Use the sample credentials for the selected account.");
       return;

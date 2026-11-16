@@ -1,11 +1,11 @@
 import { categoryName, products, type Product } from "../data/catalogue";
-import { unitPrice } from "./commerce";
-import type { DemoReceipt } from "./demo-orders";
+import { availableUnits, unitPrice } from "./commerce";
+import { fulfilmentStatuses, paymentStatuses, remainingDemoStock, type DemoReceipt } from "./demo-orders";
 
 const dayMs = 86_400_000;
 export const reportPeriods = [7, 30, 90] as const;
-export const orderStatuses = ["Processing", "Ready for pickup", "Shipped", "Delivered", "Refunded", "Cancelled"] as const;
-type OrderStatus = (typeof orderStatuses)[number];
+type Fulfilment = (typeof fulfilmentStatuses)[number];
+type Payment = (typeof paymentStatuses)[number];
 
 type ReportOrder = {
   id: string;
@@ -14,8 +14,10 @@ type ReportOrder = {
   customer: string;
   city: string;
   channel: "Online" | "Boutique";
-  status: OrderStatus;
-  items: { sku: string; size: string; units: number; price: number; cost: number }[];
+  fulfilment: Fulfilment;
+  payment: Payment;
+  refundedAt?: number;
+  items: { sku: string; size: string; colour: string; units: number; price: number; cost: number }[];
 };
 
 type Activity = { sku: string; at: number; views: number; bagAdds: number; saves: number; enquiries: number };
@@ -23,12 +25,12 @@ type ReportData = { orders: ReportOrder[]; activity: Activity[] };
 const retail = products.filter(product => product.commerce.kind === "retail");
 const bySku = new Map(products.map(product => [product.sku, product]));
 const channels = ["Online", "Boutique"] as const;
-export const netTotal = (order: ReportOrder) => order.status === "Refunded" || order.status === "Cancelled"
-  ? 0 : order.items.reduce((total, line) => total + line.units * line.price, 0);
+const orderValue = (order: ReportOrder) => order.items.reduce((total, line) => total + line.units * line.price, 0);
+export const netTotal = (order: ReportOrder) => order.payment === "Paid" ? orderValue(order) : 0;
 
 export function seedOwnerReport(now: number): ReportData {
   const cities = ["Visakhapatnam", "Hyderabad", "Vijayawada", "Rajahmundry", "Bengaluru"];
-  const statuses: OrderStatus[] = ["Delivered", "Delivered", "Delivered", "Refunded", "Delivered", "Cancelled", "Delivered", "Delivered"];
+  const statuses = ["Delivered", "Delivered", "Delivered", "Refunded", "Delivered", "Cancelled", "Delivered", "Delivered"] as const;
   const weights = [0, 0, 1, 0, 2, 3, 1, 4, 5, 6];
   const orders = Array.from({ length: 180 }, (_, day) => {
     const product = retail[weights[(day * 7 + Math.floor(day / 4)) % weights.length] % retail.length];
@@ -36,12 +38,16 @@ export function seedOwnerReport(now: number): ReportData {
     const variant = product.commerce.variants[(day * 3) % product.commerce.variants.length];
     const price = unitPrice(variant);
     const status = day < 4 ? (["Processing", "Ready for pickup", "Shipped", "Delivered"] as const)[day] : statuses[(day * 3 + Math.floor(day / 5)) % statuses.length];
+    const at = now - day * dayMs - 60_000;
     return {
-      id: "AL-S" + (4000 - day), at: now - day * dayMs - 60000, source: "Seeded" as const,
+      id: "AL-S" + (4000 - day), at, source: "Seeded" as const,
       customer: "Sample client " + (day % 3 === 0 ? 100 + day : (day * 17) % 41 + 1),
       city: cities[(day * 3 + Math.floor(day / 6)) % cities.length],
-      channel: channels[status === "Ready for pickup" ? 1 : Number(day % 4 === 2)], status,
-      items: [{ sku: product.sku, size: variant.size, units: day % 13 === 0 ? 2 : 1, price, cost: Math.round(price * (.38 + (day % 5) * .03)) }],
+      channel: channels[status === "Ready for pickup" ? 1 : Number(day % 4 === 2)],
+      fulfilment: status === "Refunded" ? "Delivered" as const : status,
+      payment: status === "Refunded" ? "Refunded" as const : status === "Cancelled" ? "Unpaid" as const : "Paid" as const,
+      refundedAt: status === "Refunded" ? at : undefined,
+      items: [{ sku: product.sku, size: variant.size, colour: variant.colour, units: day % 13 === 0 ? 2 : 1, price, cost: Math.round(price * (.38 + (day % 5) * .03)) }],
     };
   });
   const activity = Array.from({ length: 180 }, (_, day) => products.map((product, index) => {
@@ -63,9 +69,10 @@ type Demand = {
 
 function browserOrders(receipts: DemoReceipt[]): ReportOrder[] {
   return receipts.map(receipt => ({
-    id: receipt.id, at: Date.parse(receipt.createdAt), source: "This browser", customer: "Demo customer", city: "Not recorded",
-    channel: receipt.delivery === "boutique" ? "Boutique" : "Online", status: "Processing",
-    items: receipt.items.map(item => ({ sku: item.sku, size: item.size, units: item.quantity, price: item.unitPrice, cost: 0 })),
+    id: receipt.id, at: Date.parse(receipt.createdAt), source: "This browser", customer: receipt.customer ? "Demo customer" : "Demo guest", city: "Not recorded",
+    channel: receipt.delivery === "boutique" ? "Boutique" : "Online", fulfilment: receipt.fulfilment, payment: receipt.payment,
+    refundedAt: receipt.refundedAt ? Date.parse(receipt.refundedAt) : undefined,
+    items: receipt.items.map(item => ({ sku: item.sku, size: item.size, colour: item.colour, units: item.quantity, price: item.unitPrice, cost: 0 })),
   }));
 }
 
@@ -78,8 +85,9 @@ export function ownerReport(data: ReportData, receipts: DemoReceipt[], now: numb
   const paid = orders.filter(order => netTotal(order) > 0);
   const previousSales = eligible.filter(order => order.at > start - days * dayMs && order.at <= start).reduce((sum, order) => sum + netTotal(order), 0);
   const netSales = orders.reduce((sum, order) => sum + netTotal(order), 0);
-  const refunded = orders.filter(order => order.status === "Refunded");
-  const refundValue = refunded.reduce((sum, order) => sum + order.items.reduce((subtotal, item) => subtotal + item.units * item.price, 0), 0);
+  const refunded = eligible.filter(order => order.refundedAt !== undefined && order.refundedAt > start && order.refundedAt <= now);
+  const refundValue = refunded.reduce((sum, order) => sum + orderValue(order), 0);
+  const stock = remainingDemoStock(receipts);
   const paidSeeded = paid.filter(order => order.source === "Seeded");
   const seededSales = paidSeeded.reduce((sum, order) => sum + netTotal(order), 0);
   const seededCost = paidSeeded.flatMap(order => order.items).reduce((sum, line) => sum + line.units * line.cost, 0);
@@ -90,13 +98,13 @@ export function ownerReport(data: ReportData, receipts: DemoReceipt[], now: numb
   const demand: Demand[] = products.filter(product => includes(product.sku)).map(product => {
     const stats = data.activity.filter(item => item.sku === product.sku && item.at > start && item.at <= now);
     const sold = paid.flatMap(order => order.items).filter(item => item.sku === product.sku);
-    const stock = product.commerce.kind === "retail" ? product.commerce.variants.reduce((sum, variant) => sum + variant.stock, 0) : null;
+    const onHand = product.commerce.kind === "retail" ? product.commerce.variants.reduce((sum, variant) => sum + availableUnits(variant, stock), 0) : null;
     return {
       product, views: stats.reduce((sum, item) => sum + item.views, 0), saves: stats.reduce((sum, item) => sum + item.saves, 0),
       bagAdds: stats.reduce((sum, item) => sum + item.bagAdds, 0), enquiries: stats.reduce((sum, item) => sum + item.enquiries, 0),
       units: sold.reduce((sum, item) => sum + item.units, 0), sales: sold.reduce((sum, item) => sum + item.units * item.price, 0),
       refundedUnits: refunded.flatMap(order => order.items).filter(item => item.sku === product.sku).reduce((sum, item) => sum + item.units, 0),
-      stock,
+      stock: onHand,
     };
   });
 
@@ -121,18 +129,21 @@ export function ownerReport(data: ReportData, receipts: DemoReceipt[], now: numb
     repeatRate: distinctCustomers.size ? repeatCustomers.size / distinctCustomers.size : null,
     channelSales: breakdown(channels, (order, channel) => order.channel === channel),
     citySales: breakdown([...new Set(paid.filter(order => order.source === "Seeded").map(order => order.city))], (order, city) => order.city === city),
-    lowStock: demand.flatMap(({ product }) => product.commerce.kind === "retail" ? product.commerce.variants.filter(variant => variant.stock <= 1)
-      .map(variant => ({ product, variant })) : []).sort((a, b) => a.variant.stock - b.variant.stock),
+    variants: demand.flatMap(({ product }) => product.commerce.kind === "retail" ? product.commerce.variants.map(variant => ({
+      product, variant, onHand: availableUnits(variant, stock),
+      units: paid.flatMap(order => order.items).filter(item => item.sku === product.sku && item.size === variant.size && item.colour === variant.colour)
+        .reduce((sum, item) => sum + item.units, 0),
+    })) : []).sort((a, b) => b.units - a.units),
   };
 }
 
 export function reportCsv(orders: ReportOrder[]) {
   const rows = orders.flatMap(order => order.items.map(item => [
-    order.id, new Date(order.at).toISOString(), order.source, order.channel, order.status, order.city,
-    item.sku, categoryName(bySku.get(item.sku)?.category ?? ""), item.size, item.units,
+    order.id, new Date(order.at).toISOString(), order.source, order.channel, order.fulfilment, order.payment, order.city,
+    item.sku, categoryName(bySku.get(item.sku)?.category ?? ""), item.size, item.colour, item.units,
     (item.price / 100).toFixed(2), (netTotal(order) > 0 ? item.price * item.units / 100 : 0).toFixed(2),
   ]));
-  const headers = ["Order ID", "Date UTC", "Source", "Channel", "Status", "City", "SKU", "Category", "Size", "Units", "Unit price INR", "Net sales INR"];
+  const headers = ["Order ID", "Date UTC", "Source", "Channel", "Fulfilment", "Payment", "City", "SKU", "Category", "Size", "Colour", "Units", "Unit price INR", "Net sales INR"];
   return [headers, ...rows].map(row => row.map(cell => {
     const value = String(cell);
     return '"' + (/^[=+\-@\t\r]/.test(value) ? "'" : "") + value.replaceAll('"', '""') + '"';

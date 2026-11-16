@@ -6,13 +6,13 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowLeft, ArrowRight, Expand, Share2, Sparkles, ZoomIn } from "lucide-react";
 import type { Media, Product, Variant } from "@/data/catalogue";
-import { money, unitPrice } from "@/lib/commerce";
+import { availableUnits, money, unitPrice } from "@/lib/commerce";
 import { useShop } from "@/lib/store";
 import { useDemoAuth } from "@/lib/demo-auth";
 import { Overlay } from "./shell";
 import { Photo } from "./media";
 import { SaveButton } from "./catalogue";
-import { DemoSignIn } from "./demo-sign-in";
+import { useDemoOrders } from "@/lib/demo-orders";
 
 const perspectives: { role: Media["role"]; label: string }[] = [
   { role: "product", label: "Product View" }, { role: "model", label: "On Model" }, { role: "detail", label: "Details" }, { role: "video", label: "Video" },
@@ -86,18 +86,18 @@ function ImageViewer({ asset }: { asset: Media }) {
 
 function PurchaseButton({ product, variant, onFeedback }: { product: Product; variant?: Variant; onFeedback: (message: string) => void }) {
   const params = useSearchParams();
-  const [signInOpen, setSignInOpen] = useState(false);
-  const { role, ready } = useDemoAuth();
+  const ready = useDemoAuth(state => state.ready);
+  const stock = useDemoOrders(state => state.stock);
   const saved = useShop(state => state.saved.includes(product.slug));
   const add = useShop(state => state.add);
   const move = useShop(state => state.moveSavedToBag);
   const quantity = useShop(state => state.lines.find(line => line.id === variant?.id)?.quantity ?? 0);
   const fromWishlist = params.get("from") === "wishlist" && saved;
-  const atLimit = !!variant && quantity >= variant.stock;
+  const atLimit = !!variant && quantity >= availableUnits(variant, stock);
   function purchase() {
     if (!variant?.stock) { onFeedback("Select an available size to add this style."); return; }
     const currentQuantity = useShop.getState().lines.find(line => line.id === variant.id)?.quantity ?? 0;
-    if (currentQuantity >= variant.stock) { onFeedback("The sample limit has been reached."); return; }
+    if (currentQuantity >= availableUnits(variant, useDemoOrders.getState().stock)) { onFeedback("The sample limit has been reached."); return; }
     if (fromWishlist) {
       onFeedback(move(product.slug, variant.id) ? "Moved from your wishlist to your shopping bag." : "This style could not be moved. Check your bag and try another size.");
       return;
@@ -106,22 +106,13 @@ function PurchaseButton({ product, variant, onFeedback }: { product: Product; va
     onFeedback("Added to your shopping bag.");
   }
 
-  return <Overlay open={signInOpen} onOpenChange={setSignInOpen}
-    trigger={<button className="button button-dark" disabled={atLimit || !ready} onClick={event => {
-      event.preventDefault();
-      if (!variant?.stock || role === "customer") purchase();
-      else setSignInOpen(true);
-    }}>{atLimit ? "Sample limit reached" : fromWishlist ? "Move to bag" : "Add to bag"}</button>}
-    title="Sign in to add to bag" description="Sign in as the demo customer to keep the selected garment, colour and size.">
-    <div className="overlay-body">
-      <p className="pending-item">{product.title} · {variant?.colour} · {variant?.size}</p>
-      <DemoSignIn allowed="customer" onSignedIn={() => { setSignInOpen(false); purchase(); }} />
-      <button className="plain-link" type="button" onClick={() => setSignInOpen(false)}>Keep browsing</button>
-    </div>
-  </Overlay>;
+  return <button className="button button-dark" disabled={atLimit || !ready} onClick={purchase}>
+    {atLimit ? "Sample limit reached" : fromWishlist ? "Move to bag" : "Add to bag"}
+  </button>;
 }
 
 export function ProductPresentation({ product }: { product: Product }) {
+  const stock = useDemoOrders(state => state.stock);
   const variants: Variant[] = product.commerce.kind === "retail" ? product.commerce.variants : [];
   const colours = [...new Map(variants.map(variant => [variant.colour, variant.swatch]))];
   const [colour, setColour] = useState(colours[0]?.[0] ?? "");
@@ -144,9 +135,9 @@ export function ProductPresentation({ product }: { product: Product }) {
       </div></fieldset>}
       {!!variants.length && <div>
         <fieldset className="variant-group"><legend>Size</legend><div className="options">{variants.filter(item => item.colour === colour).map(item =>
-          <button key={item.id} type="button" className="size-option" disabled={!item.stock} aria-pressed={size === item.size} onClick={() => { setSize(item.size); setFeedback(""); }}>{item.size}</button>)}</div></fieldset>
+          <button key={item.id} type="button" className="size-option" disabled={!availableUnits(item, stock)} aria-pressed={size === item.size} onClick={() => { setSize(item.size); setFeedback(""); }}>{item.size}</button>)}</div></fieldset>
         <Overlay trigger={<button className="plain-link">Size guide</button>} title="Size guide" description="Sizing information for illustrative product samples"><p className="overlay-body">Sizes illustrate the selection experience. Boutique-approved measurements and fitting guidance will be added with the live catalogue.</p></Overlay>
-        <p className="fine">{variant ? "Sample availability: " + variant.stock : "Select a size to see sample availability."}</p>
+        <p className="fine">{variant ? "Sample availability: " + availableUnits(variant, stock) : "Select a size to see sample availability."}</p>
       </div>}
       <div className="product-actions">
         {variants.length ? <Suspense fallback={<button className="button button-dark" disabled>Add to bag</button>}>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -13,9 +13,11 @@ import { checkoutSchema, consultationSchema } from "@/lib/validation";
 import { money, resolveBag } from "@/lib/commerce";
 import { useShop } from "@/lib/store";
 import { useDemoAuth } from "@/lib/demo-auth";
-import { useDemoOrders } from "@/lib/demo-orders";
+import { useDemoOrders, type DemoReceipt } from "@/lib/demo-orders";
+import { useDemoEnquiries, type DemoEnquiry } from "@/lib/demo-enquiries";
 import { EmptyBag } from "./shopping";
 import { Overlay } from "./shell";
+import { DemoSignIn } from "./demo-sign-in";
 
 function Field({ title, error, children }: { title: string; error?: string; children: ReactNode }) {
   return <div className="field"><label>{title}{children}</label>{error && <p role="alert" className="error">{error}</p>}</div>;
@@ -23,31 +25,49 @@ function Field({ title, error, children }: { title: string; error?: string; chil
 
 export function Checkout() {
   const lines = useShop(state => state.lines);
-  const clear = useShop(state => state.clearBag);
+  const role = useDemoAuth(state => state.role);
+  const ready = useDemoAuth(state => state.ready);
+  const [signInOpen, setSignInOpen] = useState(false);
   const items = resolveBag(lines);
   const total = items.reduce((sum, item) => sum + item.total, 0);
-  const [completed, setCompleted] = useState(false);
-  const [receiptId, setReceiptId] = useState("");
-  const { register, handleSubmit, control, formState: { errors } } = useForm<z.input<typeof checkoutSchema>>({
+  const [receipt, setReceipt] = useState<DemoReceipt>();
+  const [bagError, setBagError] = useState("");
+  const submitting = useRef(false);
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<z.input<typeof checkoutSchema>>({
     resolver: zodResolver(checkoutSchema), defaultValues: { delivery: "standard" }, shouldUnregister: true,
   });
   const delivery = useWatch({ control, name: "delivery" });
-  if (completed) return <div className="empty-state" role="status"><Check size={28} /><h2>Demo order complete</h2><p>Your simulated order is complete. {receiptId && <>Receipt {receiptId} is saved in your demo account.</>}</p>
-    <div className="button-row checkout-links">{receiptId && <Link className="button button-outline" href="/account/">View demo receipt</Link>}<Link className="button button-dark" href="/collections/">Continue exploring <ArrowRight size={16} /></Link></div></div>;
-  if (!items.length) return <><EmptyBag /><div className="center"><Link className="button button-dark" href="/collections/">Explore collections</Link></div></>;
+  if (receipt) return <div className="empty-state" role="status"><Check size={28} /><h2>Demo order complete</h2><p>Receipt {receipt.id}. {receipt.customer ? "You can find it in your demo account." : "Your guest order is available in this browser’s owner register."}</p>
+    <div className="button-row checkout-links">{receipt.customer && <Link className="button button-outline" href="/account/">View demo receipt</Link>}<Link className="button button-dark" href="/collections/">Continue exploring <ArrowRight size={16} /></Link></div></div>;
+  if (!items.length) return <>{bagError && <p className="notice" role="alert">{bagError}</p>}<EmptyBag /><div className="center"><Link className="button button-dark" href="/collections/">Explore collections</Link></div></>;
 
   return <div className="form-layout">
-    <form noValidate onSubmit={handleSubmit(({ delivery }) => {
+    <form noValidate onSubmit={event => void handleSubmit(async ({ delivery }) => {
       const currentLines = useShop.getState().lines;
-      if (!currentLines.length) return;
-      if (useDemoAuth.getState().role === "customer") {
-        const receipt = useDemoOrders.getState().record(currentLines, delivery);
-        if (receipt) setReceiptId(receipt.id);
+      if (!currentLines.length || submitting.current) return;
+      submitting.current = true;
+      setBagError("");
+      try {
+        const order = await useDemoOrders.getState().record(currentLines, delivery, useDemoAuth.getState().role === "customer");
+        if (!order) {
+          useShop.getState().reconcileStock();
+          setBagError("Sample availability changed. Your bag has been updated. Review it before continuing.");
+          return;
+        }
+        useShop.getState().removePurchased(currentLines);
+        setReceipt(order);
+      } catch {
+        setBagError("The sample order couldn’t be recorded. Try again.");
+      } finally {
+        submitting.current = false;
       }
-      clear();
-      setCompleted(true);
-    })}>
-      <h2>Guest details</h2>
+    })(event)}>
+      <h2>{role === "customer" ? "Customer details" : "Guest checkout"}</h2>
+      {ready && role !== "customer" && <Overlay open={signInOpen} onOpenChange={setSignInOpen}
+        trigger={<button type="button" className="plain-link checkout-sign-in">Sign in to save this receipt to your account</button>}
+        title="Customer sign-in" description="Optional sign-in for demo order history">
+        <div className="overlay-body"><DemoSignIn allowed="customer" onSignedIn={() => setSignInOpen(false)} /></div>
+      </Overlay>}
       <div className="form-grid">
         <Field title="Full name" error={errors.name?.message}><input {...register("name")} autoComplete="off" aria-invalid={!!errors.name} /></Field>
         <Field title="Email" error={errors.email?.message}><input type="email" {...register("email")} autoComplete="off" aria-invalid={!!errors.email} /></Field>
@@ -63,7 +83,8 @@ export function Checkout() {
         </>}
       </div>
       <h2>Payment</h2><p className="notice">Simulated payment. This preview does not ask for card or UPI details.</p>
-      <button className="button button-dark" type="submit">Complete demo order <ArrowRight size={16} /></button>
+      {bagError && <p className="notice" role="alert">{bagError}</p>}
+      <button className="button button-dark" type="submit" disabled={!ready || isSubmitting}>Complete demo order <ArrowRight size={16} /></button>
     </form>
     <aside className="summary-panel">
       <h2>Order summary</h2>
@@ -76,16 +97,26 @@ export function Checkout() {
 
 export function ConsultationForm() {
   const params = useSearchParams();
-  const garment = products.find(product => product.title === params.get("garment"))?.title;
-  const [request, setRequest] = useState<z.output<typeof consultationSchema> | null>(null);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<z.input<typeof consultationSchema>>({
-    resolver: zodResolver(consultationSchema), defaultValues: { service: "Bespoke design", method: "At the boutique", notes: "", date: "", category: "" },
+  const garment = products.find(product => product.title === params.get("garment"));
+  const [request, setRequest] = useState<DemoEnquiry | null>(null);
+  const [failure, setFailure] = useState("");
+  const submit = useDemoEnquiries(state => state.submit);
+  const ready = useDemoAuth(state => state.ready);
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<z.input<typeof consultationSchema>>({
+    resolver: zodResolver(consultationSchema), defaultValues: { service: "Bespoke design", method: "At the boutique", notes: "", date: "", category: garment?.category ?? "" },
   });
   return <>
-    <p className="notice">Demonstration form. Use sample contact details. Submissions stay on this screen.</p>
-    {request ? <div className="empty-state" role="status"><Check size={27} /><h3>Consultation preview ready</h3><p>{request.service} · {request.method}{request.date ? " · " + request.date : ""}</p><p>The boutique will confirm availability when appointment requests are enabled.</p><button className="button button-outline" onClick={() => { reset(); setRequest(null); }}>Start another preview</button></div> :
-      <form noValidate onSubmit={handleSubmit(setRequest)}>
-        {garment && <p>Inspiration: {garment}</p>}
+    <p className="notice">Use sample contact details. This browser’s demo owner queue receives the request type and occasion details. Names, contact details and notes stay in this form.</p>
+    {request ? <div className="empty-state" role="status"><Check size={27} /><h3>Demo enquiry received</h3><p>{request.id} · {request.service} · {request.method}</p><p>Saved to this browser’s owner queue for a sample follow-up.</p><button className="button button-outline" onClick={() => { reset(); setRequest(null); }}>Start another preview</button></div> :
+      <form noValidate onSubmit={handleSubmit(async ({ service, method, category, date }) => {
+        try {
+          setRequest(await submit({ service, method, category, garment: garment?.slug ?? "", eventDate: date }));
+          reset();
+        } catch {
+          setFailure("The sample enquiry couldn’t be saved. Try again.");
+        }
+      })}>
+        {garment && <p>Inspiration: {garment.title}</p>}
         <div className="form-grid">
           <Field title="Name" error={errors.name?.message}><input {...register("name")} autoComplete="off" aria-invalid={!!errors.name} /></Field>
           <Field title="Email or phone" error={errors.contact?.message}><input {...register("contact")} autoComplete="off" aria-invalid={!!errors.contact} /></Field>
@@ -95,7 +126,8 @@ export function ConsultationForm() {
           <Field title="Occasion date (optional)" error={errors.date?.message}><input type="date" {...register("date")} /></Field>
         </div>
         <Field title="Occasion or design notes (optional)" error={errors.notes?.message}><textarea rows={4} maxLength={600} {...register("notes")} /></Field>
-        <button type="submit" className="button button-dark">Preview consultation request <ArrowRight size={16} /></button>
+        {failure && <p className="error" role="alert">{failure}</p>}
+        <button type="submit" className="button button-dark" disabled={!ready || isSubmitting}>Submit demo enquiry <ArrowRight size={16} /></button>
       </form>}
   </>;
 }
