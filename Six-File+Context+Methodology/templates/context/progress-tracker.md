@@ -67,3 +67,8 @@ See the project README for commands, presentation notes and deployment instructi
 
 - Added 16 garment-specific illustrative WebPs for the eight sample products that lacked Product View and Details. All nine product pages now offer Product View, On Model and Details. Virtual Atelier can compare the paired garment views across the sample catalogue.
 - Verified TypeScript, lint, four unit tests, the Webpack production export and 14 desktop/mobile browser runs. The gallery test checks all three views on each product page and confirms that each photograph loads.
+
+## Editorial homepage restoration
+
+- Restored the original hero copy, warm palette and serif typography using the previous editorial design as the reference. The homepage again uses the single navigation row and places the atelier story before the product edits. Interior page layouts retain their current structure.
+- The production export, lint, homepage accessibility and responsive checks, and all nine product galleries passed on desktop and mobile. The mobile checkout journey timed out at Quick View on the first run and passed on a focused rerun.

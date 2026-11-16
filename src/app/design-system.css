@@ -1,14 +1,14 @@
 /* Tailwind v4 theme. Semantic tokens are shared by utilities and component CSS. */
 :root {
-  --paper: #ffffff;
-  --parchment: #f4f3f1;
-  --ink: #202020;
-  --muted: #62605e;
-  --wine: #592936;
-  --champagne: #e8ddcf;
-  --line: #dedbd7;
+  --paper: #f7f3ec;
+  --parchment: #eee8df;
+  --ink: #24211f;
+  --muted: #6c5d54;
+  --wine: #471f29;
+  --champagne: #d8c7a8;
+  --line: #d8cec2;
   --control-line: #827c76;
-  --error: #a32935;
+  --error: #9c2b35;
   --serif: "Cormorant Garamond Variable", Georgia, serif;
   --sans: "Instrument Sans Variable", Arial, sans-serif;
   --space-1: .25rem;
@@ -23,7 +23,7 @@
   --container-wide: 1440px;
   --container-reading: 760px;
   --section-space: clamp(2.5rem, 5vw, 4.5rem);
-  --header-height: 80px;
+  --header-height: 76px;
   --control-height: 48px;
   --duration-fast: 160ms;
 }

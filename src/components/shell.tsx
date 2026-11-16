@@ -45,6 +45,7 @@ export function Overlay({ trigger, title, description, children, drawer = false,
 
 export function Header() {
   const pathname = usePathname();
+  const isHome = pathname === "/";
   const count = useShop(state => state.lines.reduce((total, line) => total + line.quantity, 0));
   const role = useDemoAuth(state => state.role);
   const accountHref = role === "admin" ? "/admin/" : "/account/";
@@ -63,9 +64,9 @@ export function Header() {
   return <>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <div className="announcement">{brand.announcement}</div>
-    <header className="site-header">
+    <header className={isHome ? "site-header site-header--home" : "site-header"}>
       <nav className="desktop-nav" aria-label="Main navigation">
-        {navigation.slice(0, 4).map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}
+        {(isHome ? navigation : navigation.slice(0, 4)).map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}
       </nav>
       <div className="mobile-nav">
         <Overlay trigger={<button className="icon-button" aria-label="Open navigation"><Menu size={23} /></button>}
@@ -87,11 +88,11 @@ export function Header() {
         </Overlay>
       </nav>
     </header>
-    <nav className="shop-rail rail" aria-label="Shop by occasion">
+    {!isHome && <nav className="shop-rail rail" aria-label="Shop by occasion">
       {categories.map(category => <Link key={category.slug} href={"/collections/" + category.slug + "/"}
         aria-label={"Shop " + category.name} aria-current={pathname === "/collections/" + category.slug + "/" ? "page" : undefined}>{category.name}</Link>)}
       <Link href="/lookbook/">Lookbook</Link>
-    </nav>
+    </nav>}
   </>;
 }
 
