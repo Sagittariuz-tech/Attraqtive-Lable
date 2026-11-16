@@ -1,23 +1,76 @@
 # Attraqtive Label
 
-A private interactive storefront demonstration by Sagittariuz for the Attraqtive Label boutique in Ram Nagar, Visakhapatnam.
+**Private storefront demonstration by Sagittariuz**
+
+Prepared for Attraqtive Label, a designer-wear boutique in Ram Nagar, Visakhapatnam.
+
+This project presents an editorial fashion storefront and demonstrates product discovery, garment galleries, guest shopping, a simulated checkout, bespoke enquiries, and a sample owner dashboard. It is a private prototype: catalogue items, prices, stock, accounts, orders, and business reports are illustrative and are not connected to live shop operations.
+
+## Boutique profile
+
+Public business and bridal-vendor listings describe Attraqtive Label as a designer couture and occasionwear boutique in Ram Nagar, Visakhapatnam. The profiles reference bridal and wedding attire, designer gowns, custom outfits, tailoring, and occasionwear. They also describe customization and made-to-order work. These are third-party descriptions, not a current catalogue or confirmation that every service is available today. See the [WedMeGood vendor profile](https://www.wedmegood.com/profile/Attraqtive-Label-1294980) and [Justdial listing](https://www.justdial.com/Visakhapatnam/Attraqtive-Label-Opposite-Icici-Bank-Ramnagar-Branch-Ram-Nagar/0891PX891-X891-200218182958-M8Q9_BZDET).
+
+| Detail | Information |
+| --- | --- |
+| Boutique | Attraqtive Label |
+| Location | Ram Nagar, Visakhapatnam, Andhra Pradesh, India |
+| Publicly listed address | SF-2, 10-29-10/13, Waltair Main Road, opposite ICICI Bank (Ramnagar Branch), Ram Nagar, Visakhapatnam, Andhra Pradesh 530002. Confirm with the boutique before publication. |
+| Phone | +91 90599 98264; supplied for the project and also present in public listings. |
+| WhatsApp, email, hours, social accounts | Not confirmed by the owner. Do not present candidate listings as official contact channels. |
+
+Public listings disagree on some business details, including hours and pricing. The address and product/service descriptions above are included as research notes for this private project and require owner confirmation before they are published as official shop information. The project does not claim a verified establishment year, founder biography, live price list, or current inventory.
+
+## Demo features
+
+| Area | Demonstration |
+| --- | --- |
+| Storefront | Editorial homepage, collection discovery, atelier story, selected styles, new arrivals, and consultation entry point. |
+| Catalogue | Nine illustrative styles across four proposed categories, with search, sorting, filters, and quick view. Categories and sample assortment are configurable proposals, not confirmed live inventory. |
+| Product pages | Product View, On Model, and Details imagery on every sample product; image enlargement and 2× zoom. The Garnet Zardozi Lehenga includes two model views. |
+| Shopping | Guest-accessible wishlist and bag, variant and quantity selection, and browser-persisted demo state. |
+| Checkout | Simulated delivery or boutique-collection flow. No payment is processed and no order is sent to the boutique. |
+| Bespoke enquiries | A local consultation form creates a demo reference and an item in the sample owner queue. |
+| Customer account | Demo sign-in and receipt history for orders completed in the current browser. |
+| Owner dashboard | Sample sales trends, style and variant demand, stock, orders, refunds, enquiries, follow-ups, and CSV export. |
+| Concept previews | Preset-based Find Your Inspiration and Virtual Atelier examples. These do not upload or process customer photos. |
+
+### Sample credentials
+
+| Role | Demo email | Demo access code |
+| --- | --- | --- |
+| Customer | `customer@example.test` | `SHOP2026` |
+| Boutique owner | `owner@example.test` | `OWNER2026` |
+
+Enter the email and matching access code in their respective fields. The demo role is stored for the current browser tab. Guests can browse, save styles, add to the bag, and complete the simulated checkout without signing in.
 
 ## Run locally
 
-Use Node.js 20.9 or newer. Node 24 and npm 11 were used during development.
+Requirements: Node.js 20.9 or later and npm. Development used Node.js 24 and npm 11.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open [the local storefront](http://localhost:3000). The demo uses local WebP assets and fonts, typed sample data and browser storage. It requires no environment variables, credentials, external APIs or database.
+Open [http://localhost:3000](http://localhost:3000). The demo uses local WebP images, local fonts, typed sample data, and browser storage. It does not require environment variables, credentials, an external API, or a database.
 
-## Storefront design
+## Try the storefront
 
-The homepage uses the original editorial arrangement: an ivory and wine palette, Cormorant Garamond headings, Instrument Sans interface text, and campaign, collection, atelier, product edit and consultation sections. Interior catalogue pages retain their responsive category navigation and product discovery layout. The design takes broad fashion-retail usability cues without using reference-site branding or assets.
+1. Browse the homepage and open a collection or product.
+2. On a product page, compare Product View, On Model, and Details; enlarge an image to inspect it.
+3. Save an item, add a selected size to the bag, and refresh to see browser persistence.
+4. Complete a simulated checkout as a guest. Use sample contact information and PIN `530002`, or select boutique collection.
+5. Submit a sample bespoke enquiry and inspect its reference in the owner queue.
+6. Sign in as the customer to review a demo receipt, or as the boutique owner to explore reports, the order register, stock actions, enquiry follow-ups, and CSV export.
+7. Open the concept pages to compare prepared discovery and Virtual Atelier examples.
 
-## Build and verify
+All product images are illustrative. Catalogue prices and starting stock are fixtures. Owner reports combine seeded sample orders with simulated activity stored in the current browser. The role gate is client-side and credentials are public demo values; it is not suitable for real users or business data. Checkout, refunds, fulfilment, consultation handling, and AI concepts are simulations. The demo stores no payment data and does not send customer submissions to the boutique. Review the asset notes in [`public/images/PROVENANCE.md`](public/images/PROVENANCE.md).
+
+## Design direction
+
+The homepage uses the original editorial arrangement, warm ivory and wine colours, Cormorant Garamond display headings, and Instrument Sans for interface and body text. Catalogue pages retain responsive discovery and category navigation. The design uses broad fashion-retail usability principles without copying reference brands, copy, or assets.
+
+## Build and verification
 
 ```sh
 npm run lint
@@ -28,65 +81,62 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Playwright serves the static build and exercises desktop and mobile paths. To run against an existing Edge installation, set `PLAYWRIGHT_CHANNEL=msedge`. On Windows PowerShell use `$env:PLAYWRIGHT_CHANNEL = "msedge"` before running the test command.
+The Playwright suite serves the static build and covers desktop and mobile journeys. To use an existing Microsoft Edge installation, set the channel before running the suite:
 
-## Private deployment
+```powershell
+$env:PLAYWRIGHT_CHANNEL = "msedge"
+npm run test:e2e
+```
 
-1. Run `npm ci` and `npm run build` in a clean build environment.
-2. Use `npm run preview` to check the generated `out/` directory locally.
-3. Configure the chosen static host to serve `out/`, resolve directory index files for trailing-slash URLs and serve the exported `404.html` for missing routes.
-4. Enable the host's private, authenticated access control before sharing the demo URL. The app excludes demo pages from search indexing via metadata and robots.txt.
-5. After deployment, verify direct navigation and refresh on a collection and product URL. Complete the bag, mock checkout and consultation journeys on the deployed host.
+## Private static deployment
 
-The build normalizes static navigation segment paths when Next.js emits nested Windows export paths. [Next.js issue 85374](https://github.com/vercel/next.js/issues/85374)
+The production build exports the site to `out/`. The preview command serves that directory locally:
 
-## Client walkthrough
+```sh
+npm ci
+npm run build
+npm run preview
+```
 
-| Included in demo | What to try |
-| --- | --- |
-| Editorial storefront | Scroll through the homepage, open Bridal Couture and follow a selected creation into the lookbook. |
-| Catalogue and product discovery | Filter by size, garment fabric or occasion. Search for “silk” and open a quick view. |
-| Product gallery | Open any sample garment and switch between Product View, On Model and Details. Garnet Zardozi Lehenga has two On Model shots. Enlarge any view and use 2× zoom. |
-| Wishlist and bag | Save the garnet sample, open the wishlist and choose Move to bag. Select a size and change the quantity as a guest. Reload to verify local persistence. |
-| Demo checkout | Enter sample guest information and the sample PIN `530002`, or select boutique collection. Complete checkout as a guest or optionally sign in at checkout to keep a receipt in the customer account. |
-| Bespoke consultation | Submit a demo enquiry using sample contact data. Use its reference to find it in the owner queue, change its stage and set a follow-up date. |
-| Future AI concept previews | Choose a preset in Find Your Inspiration or select a garment in Virtual Atelier to compare its Product View and On Model images. |
-| Customer account | Sign in before completing checkout and open Account to inspect the receipt and its payment and fulfilment states. |
-| Owner dashboard | Sign in as Boutique owner and filter sales and variant demand. Select This browser in the order register, open an order, and try its fulfilment, simulated refund and restock actions. Filter and export the register to CSV. |
+For a private host:
 
-The nine catalogue items, prices, inventory quantities and media are illustrative. Orders and consultations stay in the demo. The WhatsApp channel is awaiting confirmation, so the interface previews and copies a sample message. Demo AI screens use prepared examples.
+1. Configure the host to serve `out/`, resolve directory index files for trailing-slash URLs, and serve the exported `404.html` for missing routes.
+2. Enable authenticated, private access at the hosting layer before sharing the preview. The application itself provides only demo authentication.
+3. Check direct navigation and refresh on collection and product URLs.
+4. Walk through the bag, simulated checkout, and consultation flows on the deployed host.
 
-### Demo credentials and data
+The app excludes the demo from search indexing through metadata and `robots.txt`; this does not replace host access control. The build also normalizes static navigation segment paths emitted by Next.js for Windows exports. See [Next.js issue 85374](https://github.com/vercel/next.js/issues/85374).
 
-| Role | Demo email | Demo access code |
-| --- | --- | --- |
-| Customer | `customer@example.test` | `SHOP2026` |
-| Boutique owner | `owner@example.test` | `OWNER2026` |
+## Replacing demo content
 
-Enter either sample email and its matching access code in both sign-in fields. Guests can browse, save styles, add to the bag, and check out. The demo role is stored per tab. The browser retains the bag, wishlist, receipt snapshots and a demo enquiry queue. Enquiry records include the reference, service, garment interest, occasion date, stage and follow-up date. Submitted names, contact details, checkout addresses and free-text notes are excluded from browser records.
+- Update boutique name, location, contact, and approved brand copy in [`src/data/brand.ts`](src/data/brand.ts).
+- Replace the sample catalogue, variants, prices, stock, and media references in [`src/data/catalogue.ts`](src/data/catalogue.ts).
+- Add optimized, owner-authorized image derivatives to `public/images/`, define their media roles and accurate alt text in the catalogue, and record their origin.
+- Replace campaign and editorial images and review mobile crops, product galleries, and no-index metadata.
+- Revisit the owner dashboard fixtures and README walkthrough whenever demo behavior changes.
 
-The owner screen uses a simulated client-side role gate and public fixtures. Real customer or business data requires server authentication and authorization. Report periods are rolling, and category filters apply only the matching order lines. Net sales use order dates and reflect current payment state. Refund totals use refund dates. Margin and returning-customer calculations use seeded orders. Current sample stock starts with the catalogue fixtures and is reduced by purchases completed in this browser. Refunding changes the payment record, and the separate restock action releases the units back to stock.
+## Owner confirmations before public launch
 
-## Owner review before production
-
-- Approve the wordmark or provide official assets, colour, copy, address, hours and verified contact channels.
-- Confirm categories, actual catalogue, variants, sizes, stock, display prices, lead times, custom-order steps and rights-cleared product, model and detail imagery.
-- Approve delivery, tax, invoicing, returns, payment, privacy and consultation operations. Confirm the commercial scope of the shop.
-- Decide whether the catalogue and usage justify an AI pilot. Approve its security, consent and customer support procedures before testing with personal images.
+- Approve the official wordmark, brand colours, copy, story, and any public-facing boutique details.
+- Confirm the address, hours, phone, WhatsApp availability, email, and social profiles.
+- Confirm current collections, made-to-order and ready-to-wear availability, variants, prices, stock, lead times, and fitting or consultation process.
+- Provide rights-cleared product, model, and detail photography, plus consent for any customer images or testimonials.
+- Approve shipping, collection, tax, invoicing, payment, returns, privacy, and customer-support procedures.
+- Define the production scope before integrating real accounts, orders, payments, inventory, or customer enquiries.
 
 ## Production roadmap
 
-1. Build staff catalogue, inventory, media and content management with secure roles, audit records and staging migrations.
-2. Add optional customer accounts, secure guest sessions, server-side carts, wishlist reconciliation and consultation intake. Configure access controls, monitoring and retention before handling customer data.
-3. Introduce authoritative checkout totals, transactional inventory reservations, idempotent verified payment events, shipping, orders, refunds and notifications. Verify on a payment-provider sandbox before separating live credentials and opening access.
-4. Pilot visual search once the approved catalogue can support useful matches. Measure retrieval accuracy on known garment references, evaluate catalogue indexing and query costs, and set a confidence threshold and bespoke fallback.
-5. Pilot virtual try-on separately after evaluating product-image quality, inference latency, per-render cost, storage/egress, processor terms and deletion behavior. Use private short-lived photo storage, consent and result deletion. Review output bias and fit disclosures before launch.
+1. Add staff catalogue, inventory, media, and content management with server-enforced roles, audit records, and reviewed database migrations.
+2. Add optional customer accounts, secure guest sessions, server-side carts, wishlist reconciliation, and consultation intake with monitoring and retention controls.
+3. Implement authoritative checkout totals, transactional stock reservations, verified and idempotent payment events, shipping, order management, refunds, and notifications. Validate in a provider sandbox before any live launch.
+4. Evaluate visual search against an approved catalogue, known reference images, retrieval accuracy, indexing needs, and operating costs.
+5. Evaluate virtual try-on separately for image quality, latency, cost, consent, privacy, storage, deletion behavior, output bias, and fit disclosures before a controlled pilot.
 
-## Context and asset replacement
+## Project references
 
-- [Six-context project overview](Six-File+Context+Methodology/templates/context/project-overview.md)
-- [Architecture, data model and delivery sequence](Six-File+Context+Methodology/templates/context/architecture.md)
-- [Implementation tracker](Six-File+Context+Methodology/templates/context/progress-tracker.md)
-- [Illustrative asset provenance](public/images/PROVENANCE.md)
-
-Edit brand and contact settings in `src/data/brand.ts` and replace the sample catalogue in `src/data/catalogue.ts`. Place optimized derivatives of owner-authorized images in `public/images/`, update the catalogue’s media roles, origin and alt text, and replace the homepage and editorial route imagery. Verify mobile framing, gallery roles and the no-index configuration after changes.
+- [Project overview](Six-File+Context+Methodology/templates/context/project-overview.md)
+- [Architecture and data model](Six-File+Context+Methodology/templates/context/architecture.md)
+- [UI context](Six-File+Context+Methodology/templates/context/ui-context.md)
+- [Progress tracker](Six-File+Context+Methodology/templates/context/progress-tracker.md)
+- [Illustrative image provenance](public/images/PROVENANCE.md)
+- [Boutique research notes](Company%20info/Attraqtive_Label_Details.md)
