@@ -1,45 +1,40 @@
 # UI Context
 
-## Theme
+## Design direction
 
-Quiet luxury inspired by Indian occasionwear editorials. Use an ivory canvas, wine-toned imagery, a typographic wordmark, clipped composition and generous spacing. References include [COS runway presentation](https://www.cos.com/en-eu-e/runway/spring-summer-2026) and [Aza wedding discovery](https://www.azafashions.com/wedding).
+A fashion storefront with a white canvas, near-black interface, restrained wine accents and garment-led merchandising. Instrument Sans handles navigation, product names, prices, forms and dashboard data. Cormorant Garamond remains in the wordmark, campaign heading and atelier story. Retain original Attraqtive branding and locally licensed fonts.
 
-## Colors
+## Reference review, 16 November 2026
 
-| Role | Token | Value |
+Reviewed the live H&M India, Nykaa Fashion and The Souled Store homepages through web text and browser screenshots. These are qualitative observations, not extracted brand font specifications or exact spacing measurements. Cookie and notification overlays limited some views. The Souled Store was also inspected at a 390px viewport; Nykaa exposed its compact navigation in the available pane. A complete mobile product-page audit of all three was not performed.
+
+| Reference | Observed principles | Attraqtive application |
 | --- | --- | --- |
-| Page | `--paper` | #F7F3EC |
-| Surface | `--parchment` | #EEE8DF |
-| Main text | `--ink` | #24211F |
-| Muted text | `--muted` | #6C5D54 |
-| Accent | `--wine` | #471F29 |
-| Decorative accent | `--champagne` | #D8C7A8 |
-| Hairline | `--line` | #D8CEC2 |
+| [H&M India](https://www2.hm.com/en_in/index.html) | Compact sans-serif navigation, high-contrast black shell in the current campaign, large edge-to-edge photography, flat rectangular controls and fine dividers | Clear type hierarchy, image-led campaign, rectangular controls, no decorative card shadows |
+| [Nykaa Fashion](https://www.nykaafashion.com/) | Prominent search, visual category strip, closely spaced image tiles, bold section labels, white/light-neutral surfaces; compact menu and shopping icons | Scrollable category rail, compact product metadata, neutral canvas and stronger discovery hierarchy |
+| [The Souled Store](https://www.thesouledstore.com/) | Bold department navigation, white header, prominent search, large campaign images, restrained borders and a concentrated red accent; mobile switches to a menu, icons and tall campaign crop | Clear navigation hierarchy, restrained wine accent, dedicated mobile campaign image, visible account and bag actions |
 
-## Typography
+No reference copy, logos, fonts, photos or other assets were imported. Campaign colours change and are not universal brand specifications.
 
-Cormorant Garamond or a locally available editorial serif for display and Instrument Sans or Geist for interface text. Use licensed local fonts and robust fallbacks. Use sentence case for prose and tracked uppercase in compact navigation and functional labels.
+## Global tokens
 
-## Border Radius
+`src/app/design-system.css` is imported by `globals.css`. Tailwind v4 uses CSS-first `@theme inline`; no separate Tailwind config is required.
 
-Rectangular image crops and buttons, with rounded swatches and small circular icon actions. Use outlined, contrast-tested focus indicators.
+- Canvas `#FFFFFF`, surface `#F4F3F1`, text `#202020`, muted text `#62605E`, wine accent `#592936`.
+- Decorative dividers `#DEDBD7`; input and selection boundaries `#827C76`; error `#A32935`.
+- Spacing scale 4, 8, 12, 16, 24, 32, 48 and 64px. Fluid page gutters 16–48px. Main container caps at 1440px and reading container at 760px. Section padding scales from 40–72px.
+- Body 16px/1.5, product names 15px/1.4, UI controls 14px, section headings 24–36px. Large display serif is reserved for editorial moments.
+- Primary buttons use ink, with wine hover, 48px minimum height, square corners and sentence-case labels. Secondary buttons use an outline. Links use an underline or a visible border response. Focus indicators and reduced-motion handling remain global.
 
-## Component Library
+## Responsive primitives
 
-Use native semantic controls or Radix primitives where needed for focus containment, Escape handling and status feedback. Icons use Lucide with accessible names for icon buttons. Galleries distinguish on-model, product and detail imagery and use swipe, keyboard and fullscreen controls.
+`wrap`, `narrow`, `section`, `stack`, `cluster`, `rail` and `responsive-grid` provide reusable composition. Tailwind exposes semantic colour, font, spacing and type tokens such as `bg-canvas`, `text-accent`, `font-display` and `px-gutter`.
 
-## Layout Patterns
+- Catalogue uses four columns from 1100px, three from 701px, two on phones, and one below 360px for readable names and prices. Homepage curated groups retain three-column desktop layouts.
+- Product/category crops are 3:4. Every sample product page offers Product View, On Model and Details with garment-specific imagery. Gallery images use a contained layout so the whole photograph remains inspectable. Hover changes are supplementary; touch shoppers retain quick view and gallery controls.
+- A horizontally scrollable category rail sits below the header. The main menu collapses on narrower screens; account and bag remain accessible. Current category is marked with `aria-current` and an underline.
+- Forms keep 16px input text. Product details and checkout stack on mobile. Owner tables scroll within their own container.
 
-- Announcement, navigation, cinematic hero, collection edits, featured samples, atelier story, bespoke journey, lookbook and private consultation.
-- Desktop gallery and sticky product details. Mobile uses swipe gallery and thumb-friendly controls. In the enlarged garment view, a 2× zoom exposes a scrollable image region. Arrow keys browse the main gallery and Escape closes the enlarged view.
-- Sign in remains a visible header action. Guest checkout offers optional sign-in for saving the receipt. The owner dashboard groups sales, variant demand, stock, orders and the enquiry queue with labeled controls and horizontally scrollable tables on small screens.
-- On scroll use transform and opacity reveals with GSAP lifecycle cleanup and a reduced-motion guard. CSS owns hover and focus transitions. Reserve media dimensions and lazy-load secondary imagery.
+## Interaction and truthfulness
 
-## Reference review
-
-- Use garment perspectives and outfit context to support purchase decisions. [H&M dresses](https://www2.hm.com/en_in/women/shop-by-product/dresses.html)
-- Give the campaign image room to establish the visual tone. [Zara Studio editorial](https://www.zara.com/integration/pressapi/multimedia/be/40/d8c51b4048aa8a99d6415f647ac8_original.pdf)
-- Let the collection structure and typography support the editorial rather than overwhelm it. [COS runway](https://www.cos.com/en-eu-e/runway/spring-summer-2026)
-- Organize bridal stories around distinct perspectives. [Sabyasachi](https://sabyasachi.com/)
-- Offer occasion-led entry points for Indian designerwear. [Aza wedding edit](https://www.azafashions.com/wedding)
-- Keep discovery filters separate from the product imagery and headings. [Farfetch womenswear](https://www.farfetch.com/shopping/women/clothing-1/items.aspx)
+Keep public browsing and guest checkout open. Optional sign-in, demo receipts, stock, refunds, enquiry queues and paired-media concepts retain their existing behavior. Sample imagery, prices and simulated flows remain labeled. Use Radix overlays, semantic controls, keyboard access, focus restoration and reduced-motion support. No new blocking popups.

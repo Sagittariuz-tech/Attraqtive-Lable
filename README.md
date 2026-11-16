@@ -42,11 +42,11 @@ The build normalizes static navigation segment paths when Next.js emits nested W
 | --- | --- |
 | Editorial storefront | Scroll through the homepage, open Bridal Couture and follow a selected creation into the lookbook. |
 | Catalogue and product discovery | Filter by size, garment fabric or occasion. Search for “silk” and open a quick view. |
-| Model imagery | Open Garnet Zardozi Lehenga and switch between Product View, On Model and Details. Browse the On Model shots, then enlarge one and use 2× zoom. |
+| Product gallery | Open any sample garment and switch between Product View, On Model and Details. Garnet Zardozi Lehenga has two On Model shots. Enlarge any view and use 2× zoom. |
 | Wishlist and bag | Save the garnet sample, open the wishlist and choose Move to bag. Select a size and change the quantity as a guest. Reload to verify local persistence. |
 | Demo checkout | Enter sample guest information and the sample PIN `530002`, or select boutique collection. Complete checkout as a guest or optionally sign in at checkout to keep a receipt in the customer account. |
 | Bespoke consultation | Submit a demo enquiry using sample contact data. Use its reference to find it in the owner queue, change its stage and set a follow-up date. |
-| Future AI concept previews | Choose a preset in Find Your Inspiration or compare the paired Garnet Zardozi Lehenga images in Virtual Atelier. |
+| Future AI concept previews | Choose a preset in Find Your Inspiration or select a garment in Virtual Atelier to compare its Product View and On Model images. |
 | Customer account | Sign in before completing checkout and open Account to inspect the receipt and its payment and fulfilment states. |
 | Owner dashboard | Sign in as Boutique owner and filter sales and variant demand. Select This browser in the order register, open an order, and try its fulfilment, simulated refund and restock actions. Filter and export the register to CSV. |
 

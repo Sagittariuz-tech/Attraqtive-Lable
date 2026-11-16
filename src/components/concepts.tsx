@@ -53,7 +53,7 @@ export function TryOnConcept() {
           <label className="consent"><input type="checkbox" checked={consent} onChange={event => { setConsent(event.target.checked); if (!event.target.checked) setShowResult(false); }} />I understand this uses two illustrative views of the selected garment.</label>
           <button className="button button-dark" disabled={!consent} onClick={() => setShowResult(true)}>View sample comparison <ArrowRight size={16} /></button>
         </> : <div className="notice">
-          <p>A paired comparison is unavailable for this style. Choose Garnet Zardozi Lehenga to try the sample comparison.</p>
+          <p>A paired comparison is unavailable for this style. Choose another garment to try the sample comparison.</p>
           <Link className="text-link" href={"/products/" + garment.slug + "/"}>View this garment <ArrowRight size={16} /></Link>
         </div>}
       </div>

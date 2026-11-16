@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { categories } from "@/data/catalogue";
 import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, ArrowRight, Heart, Menu, Search, ShoppingBag, UserRound, X } from "lucide-react";
@@ -42,6 +44,7 @@ export function Overlay({ trigger, title, description, children, drawer = false,
 }
 
 export function Header() {
+  const pathname = usePathname();
   const count = useShop(state => state.lines.reduce((total, line) => total + line.quantity, 0));
   const role = useDemoAuth(state => state.role);
   const accountHref = role === "admin" ? "/admin/" : "/account/";
@@ -62,7 +65,7 @@ export function Header() {
     <div className="announcement">{brand.announcement}</div>
     <header className="site-header">
       <nav className="desktop-nav" aria-label="Main navigation">
-        {navigation.map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}
+        {navigation.slice(0, 4).map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}
       </nav>
       <div className="mobile-nav">
         <Overlay trigger={<button className="icon-button" aria-label="Open navigation"><Menu size={23} /></button>}
@@ -84,6 +87,11 @@ export function Header() {
         </Overlay>
       </nav>
     </header>
+    <nav className="shop-rail rail" aria-label="Shop by occasion">
+      {categories.map(category => <Link key={category.slug} href={"/collections/" + category.slug + "/"}
+        aria-label={"Shop " + category.name} aria-current={pathname === "/collections/" + category.slug + "/" ? "page" : undefined}>{category.name}</Link>)}
+      <Link href="/lookbook/">Lookbook</Link>
+    </nav>
   </>;
 }
 

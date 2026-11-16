@@ -53,3 +53,17 @@ Owner walkthrough and private host setup are pending.
 ## Session Notes
 
 See the project README for commands, presentation notes and deployment instructions. Production Core Web Vitals depend on hosting, real phones and network conditions and remain to be measured on the approved release.
+
+## Design system refresh, 16 November 2026
+
+- Reviewed H&M India, Nykaa Fashion and The Souled Store live pages. Recorded qualitative findings and browser coverage limitations in UI context.
+- Added CSS-first Tailwind theme with shared colour, type, spacing and container tokens; reusable stack, cluster, rail and responsive-grid primitives.
+- Reworked global storefront styles to white/ink with restrained wine, compact sans-serif commerce typography, editorial-only serif, square controls, fine dividers and 3:4 image crops aligned to the top.
+- Added a scrollable category rail and current-page state. Reduced desktop primary links to four, with About and Contact retained in mobile navigation and footer. Moved homepage product sections before the atelier story and shortened campaign copy.
+- Typecheck and lint passed. Production static export built with the Webpack fallback; default Turbopack failed while starting its CSS worker, including outside the sandbox. No build configuration changed.
+- All 12 existing browser runs passed across desktop/mobile, including storefront journeys, owner workflows, axe checks and homepage overflow at 320, 390, 768, 1024 and 1440px. Final navigation spacing and crop refinements received a rebuild and focused responsive verification.
+
+## Complete product galleries
+
+- Added 16 garment-specific illustrative WebPs for the eight sample products that lacked Product View and Details. All nine product pages now offer Product View, On Model and Details. Virtual Atelier can compare the paired garment views across the sample catalogue.
+- Verified TypeScript, lint, four unit tests, the Webpack production export and 14 desktop/mobile browser runs. The gallery test checks all three views on each product page and confirms that each photograph loads.

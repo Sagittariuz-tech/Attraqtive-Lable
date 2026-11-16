@@ -1,0 +1,62 @@
+/* Tailwind v4 theme. Semantic tokens are shared by utilities and component CSS. */
+:root {
+  --paper: #ffffff;
+  --parchment: #f4f3f1;
+  --ink: #202020;
+  --muted: #62605e;
+  --wine: #592936;
+  --champagne: #e8ddcf;
+  --line: #dedbd7;
+  --control-line: #827c76;
+  --error: #a32935;
+  --serif: "Cormorant Garamond Variable", Georgia, serif;
+  --sans: "Instrument Sans Variable", Arial, sans-serif;
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --gutter: clamp(1rem, 3.3vw, 3rem);
+  --container-wide: 1440px;
+  --container-reading: 760px;
+  --section-space: clamp(2.5rem, 5vw, 4.5rem);
+  --header-height: 80px;
+  --control-height: 48px;
+  --duration-fast: 160ms;
+}
+
+@theme inline {
+  --color-canvas: var(--paper);
+  --color-surface: var(--parchment);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--wine);
+  --color-border: var(--line);
+  --color-control: var(--control-line);
+  --color-danger: var(--error);
+  --font-sans: var(--sans);
+  --font-display: var(--serif);
+  --spacing-gutter: var(--gutter);
+  --spacing-section: var(--section-space);
+  --container-wide: 1440px;
+  --container-reading: 760px;
+  --text-caption: .75rem;
+  --text-body: 1rem;
+  --text-title: clamp(1.75rem, 3vw, 2.5rem);
+  --text-display: clamp(3.25rem, 6vw, 6rem);
+}
+
+/* Composition primitives. All grids permit their contents to shrink. */
+.wrap { width: min(calc(100% - 2 * var(--gutter)), var(--container-wide)); margin-inline: auto; }
+.narrow { max-width: var(--container-reading); }
+.section { padding-block: var(--section-space); }
+.stack { display: flex; flex-direction: column; gap: var(--stack-gap, var(--space-4)); }
+.cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cluster-gap, var(--space-3)); }
+.rail { display: flex; gap: var(--space-6); overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+.rail > * { flex: 0 0 auto; }
+.responsive-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-3); }
+@media (min-width: 701px) { .responsive-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8) var(--space-4); } }
+@media (min-width: 1100px) { .responsive-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

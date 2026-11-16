@@ -31,8 +31,8 @@ export function ProductCard({ product, action }: { product: Product; action?: Re
   return <article className="product-card">
     <div className="product-picture">
       <Link href={href} aria-label={"View " + product.title} className="product-image">
-        <Photo {...cover} sizes="(max-width: 700px) 50vw, 33vw" />
-        {secondary && <Photo {...secondary} className="secondary" sizes="(max-width: 700px) 50vw, 33vw" />}
+        <Photo {...cover} sizes="(max-width: 700px) 50vw, (max-width: 1099px) 33vw, 25vw" />
+        {secondary && <Photo {...secondary} className="secondary" sizes="(max-width: 700px) 50vw, (max-width: 1099px) 33vw, 25vw" />}
       </Link>
       <SaveButton product={product} />
     </div>
@@ -101,7 +101,7 @@ export function Catalogue({ category = "", search = false, sort = "" }: { catego
         <option value="">Featured</option><option value="new">Newest</option><option value="low">Price, low to high</option><option value="high">Price, high to low</option>
       </select></label>
     </div>
-    {results.length ? <div className="product-grid">{results.slice(0, visible).map(product => <ProductCard product={product} key={product.slug} />)}</div> :
+    {results.length ? <div className="product-grid responsive-grid">{results.slice(0, visible).map(product => <ProductCard product={product} key={product.slug} />)}</div> :
       <div className="empty-state"><h2>No sample styles found</h2><p>Try a different search or clear your filters.</p><button className="button button-dark" onClick={reset}>Clear filters</button></div>}
     {results.length > visible && <button className="button button-outline load-more" onClick={() => setVisible(value => value + 6)}>Load more</button>}
   </>;

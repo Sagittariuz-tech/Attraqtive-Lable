@@ -14,7 +14,7 @@ Server components own route-level composition and static metadata. Client compon
 
 ## Styling
 
-Use CSS custom properties for brand values, reusable type and spacing rules, and mobile-first CSS. Keep content visible before hydration. Provide focus-visible, keyboard and reduced-motion equivalents for animated UI.
+Define semantic tokens and Tailwind v4 theme mappings in `src/app/design-system.css`. Use its container, stack, cluster, rail and responsive grid primitives; keep component-specific rules in `globals.css`. Reserve serif display type for editorial moments. Use mobile-first CSS. Keep content visible before hydration. Provide focus-visible, keyboard and reduced-motion equivalents for animated UI.
 
 ## API Routes
 

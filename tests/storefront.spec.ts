@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { products } from "../src/data/catalogue";
 
 test("shop a sample garment through checkout", async ({ page }, info) => {
   const errors: string[] = [];
@@ -107,8 +108,36 @@ test("filters, consultation and AI concept journeys", async ({ page }) => {
   await page.getByRole("button", { name: "Clear comparison" }).click();
   await expect(page.getByRole("slider")).toHaveCount(0);
   await page.goto("/virtual-atelier/?garment=olive-silk-anarkali");
-  await expect(page.getByText("A paired comparison is unavailable for this style.", { exact: false })).toBeVisible();
-  await expect(page.getByRole("button", { name: "View sample comparison" })).toHaveCount(0);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "View sample comparison" }).click();
+  const comparison = page.getByRole("region", { name: "Illustrative comparison" });
+  await expect(comparison.getByAltText("Olive silk anarkali displayed on a dress form")).toBeVisible();
+  await expect(comparison.getByAltText("A model wearing olive silk occasionwear")).toBeVisible();
+});
+
+test("every product offers three distinct gallery views with loadable images", async ({ page }) => {
+  const views = [
+    { role: "product", label: "Product View" },
+    { role: "model", label: "On Model" },
+    { role: "detail", label: "Details" },
+  ] as const;
+  for (const product of products) {
+    await page.goto("/products/" + product.slug + "/");
+    const gallery = page.getByRole("region", { name: "Product gallery" });
+    const sources = new Set<string | null>();
+    for (const { role, label } of views) {
+      const media = product.media.find(image => image.role === role);
+      if (!media) throw new Error(product.title + " is missing " + label);
+      const view = gallery.getByRole("button", { name: label, exact: true });
+      await view.click();
+      await expect(view).toHaveAttribute("aria-pressed", "true");
+      const photo = gallery.getByRole("img", { name: media.alt, exact: true });
+      await expect(photo).toBeVisible();
+      await expect.poll(() => photo.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+      sources.add(await photo.getAttribute("src"));
+    }
+    expect(sources.size, product.title).toBe(3);
+  }
 });
 
 test("browse and zoom model shots, then move a saved variant into the bag", async ({ page }) => {
