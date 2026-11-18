@@ -66,13 +66,14 @@ export function Header() {
     <div className="announcement">{brand.announcement}</div>
     <header className={isHome ? "site-header site-header--home" : "site-header"}>
       <nav className="desktop-nav" aria-label="Main navigation">
-        {(isHome ? navigation : navigation.slice(0, 4)).map(([name, href]) => <Link key={href} href={href}>{name}</Link>)}
+        {!isHome && <Link href="/">Home</Link>}
+        {(isHome ? navigation : navigation.slice(0, 4)).map(([name, href]) => <Link key={href} href={href} aria-current={!href.includes("?") && pathname === href ? "page" : undefined}>{name}</Link>)}
       </nav>
       <div className="mobile-nav">
         <Overlay trigger={<button className="icon-button" aria-label="Open navigation"><Menu size={23} /></button>}
           title="Explore Attraqtive" description="Storefront navigation" drawer>
           <nav aria-label="Mobile navigation" className="menu-links">
-            {[...navigation, ["Lookbook", "/lookbook/"], ["Search", "/search/"], [accountLabel, accountHref], ["Wishlist", "/wishlist/"]].map(([name, href]) =>
+            {[["Home", "/"], ...navigation, ["Lookbook", "/lookbook/"], ["Search", "/search/"], [accountLabel, accountHref], ["Wishlist", "/wishlist/"]].map(([name, href]) =>
               <Dialog.Close asChild key={href}><Link href={href}>{name}<ArrowRight size={18} /></Link></Dialog.Close>)}
           </nav>
         </Overlay>
@@ -89,6 +90,7 @@ export function Header() {
       </nav>
     </header>
     {!isHome && <nav className="shop-rail rail" aria-label="Shop by occasion">
+      <Link href="/">Home</Link>
       {categories.map(category => <Link key={category.slug} href={"/collections/" + category.slug + "/"}
         aria-label={"Shop " + category.name} aria-current={pathname === "/collections/" + category.slug + "/" ? "page" : undefined}>{category.name}</Link>)}
       <Link href="/lookbook/">Lookbook</Link>

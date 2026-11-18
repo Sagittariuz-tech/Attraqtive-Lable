@@ -31,4 +31,6 @@ No reference copy, logos, fonts, photos or other assets were imported. Campaign 
 
 ## Interaction and truthfulness
 
+Lenis shares GSAP's clock for wheel scrolling and pauses while Radix dialogs lock the body. Touch scrolling stays native. Reduced-motion preferences disable smooth scrolling and editorial entrance animations. Explicit Home links appear in interior desktop navigation, the category rail and the mobile menu. Hero text enters in complete blocks, with top-anchored image motion.
+
 Keep public browsing and guest checkout open. Optional sign-in, demo receipts, stock, refunds, enquiry queues and paired-media concepts retain their existing behavior. Sample imagery, prices and simulated flows remain labeled. Use Radix overlays, semantic controls, keyboard access, focus restoration and reduced-motion support. No new blocking popups.

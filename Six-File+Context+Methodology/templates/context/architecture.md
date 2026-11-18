@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Web | Next.js App Router, React, strict TypeScript | Static storefront routes and client interaction islands |
 | UI | Tailwind utilities, CSS tokens, Lucide, Radix or native accessible primitives | Responsive components and overlays |
-| Motion | GSAP and ScrollTrigger, CSS transitions, Embla | Editorial entrances and disclosures, swipe galleries |
+| Motion | Lenis, GSAP and ScrollTrigger, CSS transitions, Embla | Smooth wheel scrolling, editorial entrances, swipe galleries |
 | State | Zustand browser persistence, React Hook Form and Zod | Guest bag and wishlist, local form validation |
 | Stage B | Next.js route handlers, PostgreSQL, Prisma, Auth.js or equivalent, private object storage | Catalogue, sales, identity, administrative operations |
 | Stage C | Replaceable inference and embedding providers, optional queue, optional pgvector | Consent-controlled try-on and catalogue similarity |

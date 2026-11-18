@@ -52,6 +52,14 @@ Owner walkthrough and private host setup are pending.
 
 ## Session Notes
 
+### Motion and navigation refinement, 18 November 2026
+
+- Added Lenis wheel scrolling driven by GSAP's clock, reduced-motion handling, native touch scrolling, dialog scroll-lock synchronization and lifecycle cleanup.
+- Added explicit Home navigation on interior pages and in the mobile menu. Quick View now closes when opening a garment. Refined complete-block text entrances and anchored hero image motion at the top.
+- Lint, TypeScript, four unit tests and Webpack compilation/export passed. Local export files required repair from compiled HTML and original assets after zero-filled copies appeared. Corrected a browser test to await cart navigation before refreshing.
+- npm reported seven moderate dependency advisories. Detailed dependency triage and physical-device motion review remain pending.
+- All 14 desktop/mobile browser checks passed after the export repair, including checkout, complete galleries, owner workflows and responsive accessibility.
+
 See the project README for commands, presentation notes and deployment instructions. Production Core Web Vitals depend on hosting, real phones and network conditions and remain to be measured on the approved release.
 
 ## Design system refresh, 16 November 2026

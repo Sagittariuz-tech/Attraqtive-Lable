@@ -29,6 +29,7 @@ test("shop a sample garment through checkout", async ({ page }, info) => {
   await page.getByRole("button", { name: /Increase quantity/ }).click();
   await expect(page.getByRole("dialog").getByText("₹57,000").last()).toBeVisible();
   await page.getByRole("link", { name: "View shopping bag" }).click();
+  await expect(page).toHaveURL(/\/cart\/$/);
   await page.reload();
   await expect(page.getByText("₹57,000").last()).toBeVisible();
   await page.getByRole("link", { name: "Demo checkout" }).click();

@@ -5,6 +5,8 @@ import "@fontsource-variable/cormorant-garamond/wght-italic.css";
 import "@fontsource-variable/instrument-sans";
 import { Footer, Header } from "@/components/shell";
 import "./globals.css";
+import "lenis/dist/lenis.css";
+import { SmoothScroll } from "@/components/smooth-scroll";
 
 export const metadata: Metadata = {
   title: { default: "Attraqtive Label | Couture in Visakhapatnam", template: "%s | Attraqtive Label" },
@@ -13,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return <html lang="en-IN"><body><Header /><main id="main-content" tabIndex={-1}>{children}</main><Footer /></body></html>;
+  return <html lang="en-IN"><body><SmoothScroll /><Header /><main id="main-content" tabIndex={-1}>{children}</main><Footer /></body></html>;
 }

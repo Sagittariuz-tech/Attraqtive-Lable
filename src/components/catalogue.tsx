@@ -11,6 +11,7 @@ import { useDemoOrders } from "@/lib/demo-orders";
 import { useDemoAuth } from "@/lib/demo-auth";
 import { Photo } from "./media";
 import { Overlay } from "./shell";
+import * as Dialog from "@radix-ui/react-dialog";
 
 export function SaveButton({ product }: { product: Product }) {
   const saved = useShop(state => state.saved.includes(product.slug));
@@ -42,7 +43,7 @@ export function ProductCard({ product, action }: { product: Product; action?: Re
       <Overlay trigger={<button className="plain-link" disabled={!ready}>Quick view<span className="sr-only"> of {product.title}</span></button>}
         title={product.title} description="Sample garment preview">
         <div className="quick-view"><div className="quick-image"><Photo {...cover} /></div>
-        <div><p>{product.description}</p><p><Price product={product} /></p><p className="fine">Illustrative imagery</p><Link className="button button-dark" href={href}>View garment <ArrowRight size={15} /></Link></div></div>
+        <div><p>{product.description}</p><p><Price product={product} /></p><p className="fine">Illustrative imagery</p><Dialog.Close asChild><Link className="button button-dark" href={href}>View garment <ArrowRight size={15} /></Link></Dialog.Close></div></div>
       </Overlay>
     </div>
     {action}
